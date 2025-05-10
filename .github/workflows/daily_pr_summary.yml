@@ -1,0 +1,77 @@
+name: Daily Open Pull Request Summary
+
+on:
+  schedule:
+    - cron: '0 10 * * *' # 오후
+  workflow_dispatch:
+
+jobs:
+  send_daily_summary:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Get Open Pull Requests and Generate Slack Payload
+        id: generate_payload
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+          gh pr list --state open --json number,title,url,author,labels --limit 100 > pr_list.json
+
+          PR_LIST_JSON=$(cat pr_list.json)
+
+          SLACK_PAYLOAD=$(echo "$PR_LIST_JSON" | jq -c '
+            if length == 0 then
+              {
+                "text": "✨ 현재 오픈된 Pull Request가 없습니다! ✨",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "✨ *훌륭합니다! 현재 오픈된 Pull Request가 없습니다.* ✨"
+                    }
+                  }
+                ]
+              }
+            else
+              {
+                "text": "금일 오픈된 Pull Request 목록",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": ":mega: *금일 오픈된 Pull Request 목록* :mega:"
+                    }
+                  }
+                ] +
+                (
+                  map({
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      text: (
+                          let deadline_labels = (.labels | map(select(.name | test("^D-[0-3]$|^overdue$")) | .name) | sort | join(", "));
+                          "- *#\(.number)* <\(.url)|\(.title)> by \(.author.login)\((if deadline_labels == "" then "" else " [기한: \(deadline_labels)]" end))"
+                      )
+                    }
+                  })
+                )
+              }
+            end
+          ')
+
+          echo "payload=$SLACK_PAYLOAD" >> $GITHUB_OUTPUT
+
+      - name: Send Daily PR Summary to Slack
+        if: ${{ steps.generate_payload.outcome == 'success' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: ${{ steps.generate_payload.outputs.payload }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
