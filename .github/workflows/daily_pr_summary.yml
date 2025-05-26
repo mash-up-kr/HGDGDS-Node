@@ -2,7 +2,7 @@ name: Daily Open Pull Request Summary
 
 on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 10 * * *' # Runs at 19:00 KST
   workflow_dispatch:
 
 jobs:
