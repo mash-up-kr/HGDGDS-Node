@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+.git/
+.gitignore
+.env
+.env.*
+.vscode/
+.idea/
+*.log
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.yarn-cache/
+tmp/
