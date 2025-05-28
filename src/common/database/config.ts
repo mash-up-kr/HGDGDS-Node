@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { join } from 'path';
 import { cwd } from 'process';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { getAppModeEnv } from '../utility/env';
+import { getAppModeEnv } from '@/common';
 
 config({
   path: getAppModeEnv(),
@@ -11,10 +11,10 @@ config({
 const isDev = (process.env.APP_MODE ?? 'dev') === 'dev';
 
 export const typeormConfig: DataSourceOptions = {
-  type: 'mysql',
+  type: 'postgres',
   host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 3306),
-  username: process.env.DB_USER ?? 'root',
+  port: Number(process.env.DB_PORT ?? 5432),
+  username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'password',
   database: process.env.DB_NAME ?? 'mashup_node',
   synchronize: isDev,

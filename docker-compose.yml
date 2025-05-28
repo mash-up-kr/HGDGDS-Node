@@ -1,19 +1,20 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  postgres:
+    image: postgres:17
+    container_name: postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: mashup_node
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - '3306:3306'
+      - ${DB_PORT}:${DB_PORT}
     volumes:
-      - db_persist:/var/lib/mysql
+      - db_persist:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,23 +23,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      platforms:
-      - linux/amd64
-      - linux/arm64
-      - windows/amd64
-      - darwin/amd64
-      - darwin/arm64
     container_name: api
     restart: always
     environment:
-      DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: password
-      DB_NAME: mashup_node
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     ports:
-      - '3000:3000'
+      - ${PORT}:${PORT}
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
+
 volumes:
   db_persist:
