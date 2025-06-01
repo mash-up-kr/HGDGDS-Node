@@ -15,14 +15,13 @@ jobs:
 
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get Open Pull Requests and Generate Slack Payload
         id: generate_payload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> "$GITHUB_ENV"
-          gh auth login --with-token <<< "$GITHUB_TOKEN"
-          
           gh pr list --state open --json number,title,url,author,labels --limit 100 > pr_list.json
           
           SLACK_PAYLOAD=$(jq -c '
