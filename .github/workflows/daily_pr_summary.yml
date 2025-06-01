@@ -2,7 +2,7 @@ name: Daily Open Pull Request Summary
 
 on:
   schedule:
-    - cron: '0 10 * * *' # Runs at 19:00 KST
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Check Out Repository
         uses: actions/checkout@v3
+
       - name: Get Open Pull Requests and Generate Slack Payload
         id: generate_payload
         run: |
@@ -57,8 +58,8 @@ jobs:
                     "text": {
                       "type": "mrkdwn",
                       text: (
-                          let deadline_labels = (.labels | map(select(.name | test("^D-[0-3]$|^overdue$")) | .name) | sort | join(", "));
-                          "- *#\(.number)* <\(.url)|\(.title)> by \(.author.login)\((if deadline_labels == "" then "" else " [기한: \(deadline_labels)]" end))"
+                          (.labels | map(select(.name | test("^D-[0-3]$|^overdue$")) | .name) | sort | join(", ")) as $deadline_labels |
+                          "- *#\(.number)* <\(.url)|\(.title)> by \(.author.login)\($deadline_labels | if . == "" then "" else " [기한: \($deadline_labels)]" end)"
                       )
                     }
                   })
@@ -67,7 +68,7 @@ jobs:
             end
           ')
 
-          echo "payload=$SLACK_PAYLOAD" >> $GITHUB_OUTPUT
+          echo "payload=$SLACK_PAYLOAD" >> "$GITHUB_OUTPUT"
 
       - name: Send Daily PR Summary to Slack
         if: ${{ steps.generate_payload.outcome == 'success' }}
