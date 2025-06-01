@@ -20,13 +20,12 @@ jobs:
       - name: Get Open Pull Requests and Generate Slack Payload
         id: generate_payload
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> "$GITHUB_ENV"
+          gh auth login --with-token <<< "$GITHUB_TOKEN"
+          
           gh pr list --state open --json number,title,url,author,labels --limit 100 > pr_list.json
-
-          PR_LIST_JSON=$(cat pr_list.json)
-
-          SLACK_PAYLOAD=$(echo "$PR_LIST_JSON" | jq -c '
+          
+          SLACK_PAYLOAD=$(jq -c '
             if length == 0 then
               {
                 "text": "✨ 현재 오픈된 Pull Request가 없습니다! ✨",
@@ -35,7 +34,7 @@ jobs:
                     "type": "section",
                     "text": {
                       "type": "mrkdwn",
-                      "text": "✨ *훌륭합니다! 현재 오픈된 Pull Request가 없습니다.* ✨"
+                      "text": "✨ *현재 오픈된 Pull Request가 없습니다.* ✨"
                     }
                   }
                 ]
@@ -43,7 +42,7 @@ jobs:
             else
               {
                 "text": "금일 오픈된 Pull Request 목록",
-                "blocks": [
+                "blocks": ([
                   {
                     "type": "section",
                     "text": {
@@ -51,23 +50,22 @@ jobs:
                       "text": ":mega: *금일 오픈된 Pull Request 목록* :mega:"
                     }
                   }
-                ] +
-                (
-                  map({
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      text: (
-                          (.labels | map(select(.name | test("^D-[0-3]$|^overdue$")) | .name) | sort | join(", ")) as $deadline_labels |
-                          "- *#\(.number)* <\(.url)|\(.title)> by \(.author.login)\($deadline_labels | if . == "" then "" else " [기한: \($deadline_labels)]" end)"
-                      )
-                    }
-                  })
-                )
+                ] + 
+                (map({
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                      (.labels | map(select(.name | test("^D-[0-3]$|^overdue$")) | .name) | sort | join(", ")) as $deadline_labels |
+                      "- *#" + (.number | tostring) + "* <" + .url + "|" + .title + "> by " + .author.login + 
+                      (if $deadline_labels == "" then "" else " [기한: " + $deadline_labels + "]" end)
+                    )
+                  }
+                })))
               }
             end
-          ')
-
+          ' pr_list.json)
+          
           echo "payload=$SLACK_PAYLOAD" >> "$GITHUB_OUTPUT"
 
       - name: Send Daily PR Summary to Slack
