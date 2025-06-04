@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Version control
+.git/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
