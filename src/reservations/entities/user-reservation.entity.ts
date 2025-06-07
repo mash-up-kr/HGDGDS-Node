@@ -16,7 +16,7 @@ export class UserReservation extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Reservation, reservation => reservation.userReservations) // Reservation 엔티티에 역관계 추가 필요
+    @ManyToOne(() => Reservation, reservation => reservation.userReservations)
     @JoinColumn({ name: 'reservation_id' })
     reservation: Reservation;
 
@@ -28,5 +28,5 @@ export class UserReservation extends BaseEntity {
     status: UserReservationStatus;
 
     @Column({ name: 'status_message', nullable: true })
-    statusMessage: string;
+    statusMessage?: string;
 }

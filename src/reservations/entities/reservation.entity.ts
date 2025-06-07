@@ -25,18 +25,16 @@ export class Reservation extends BaseEntity {
     reservationDatetime: Date;
 
     @Column({ nullable: true })
-    description: string;
+    description?: string;
 
     @Column({ nullable: true })
-    linkUrl: string;
+    linkUrl?: string;
 
     @ManyToOne(() => User, user => user.hostedReservations)
     @JoinColumn({ name: "host_id" })
     host: User;
 
-    @ManyToOne(() => SimilarGroup, group => group.reservations, {
-        nullable: true
-    })
+    @ManyToOne(() => SimilarGroup, group => group.reservations)
     @JoinColumn({ name: "similar_group_id" })
     similarGroup: SimilarGroup;
 
