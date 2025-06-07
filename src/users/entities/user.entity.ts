@@ -1,44 +1,52 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, Unique, OneToMany } from 'typeorm';
+import { BaseEntity } from '@/common/entity/base.entity';
+import { Reservation } from '@/reservations/entities/reservation.entity';
+import { NotificationLog } from "@/notification-logs/entities/notification-log.entity";
+import { ReservationResultEntity } from "@/reservations/entities/reservation-result.entity";
+import { UserReservation } from "@/reservations/entities/user-reservation.entity";
 
 export enum UserRole {
-  SUPERUSER = 'superuser',
-  STAFF = 'staff',
-  USER = 'user',
+  HOST = 'HOST',
+  GUEST = 'GUEST',
 }
 
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ length: 100 })
+@Entity({ name: 'users' })
+@Unique(['deviceId'])
+export class User extends BaseEntity {
+  @Column()
   nickname: string;
 
-  @Column({ unique: true })
-  email: string;
+  @Column({ name: 'profile_url' })
+  profileUrl: string;
 
-  @Column()
-  password: string;
-
-  @Column({ default: true, select: false })
-  isActive: boolean;
+  @Column({ name: 'device_id' })
+  deviceId: string;
 
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.USER,
+    default: UserRole.GUEST,
   })
   role: UserRole;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ name: 'reservation_alarm_setting', type: 'boolean', default: true })
+  reservationAlarmSetting: boolean;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column({ name: 'poke_alarm_setting', type: 'boolean', default: true })
+  pokeAlarmSetting: boolean;
+
+  @OneToMany(() => Reservation, reservation => reservation.host)
+  hostedReservations: Reservation[];
+
+  @OneToMany(() => NotificationLog, log => log.recipientUser)
+  receivedNotifications: NotificationLog[];
+
+  @OneToMany(() => NotificationLog, log => log.senderUser)
+  sentNotifications: NotificationLog[];
+
+  @OneToMany(() => ReservationResultEntity, reservationResult => reservationResult.user)
+  sharedReservationResults: ReservationResultEntity[];
+
+  @OneToMany(() => UserReservation, userReservation => userReservation.user)
+  participatedReservations: UserReservation[];
 }

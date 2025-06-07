@@ -1,0 +1,24 @@
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { BaseEntity } from '@/common/entity/base.entity';
+import { Reservation } from '@/reservations/entities/reservation.entity';
+import { User } from '@/users/entities/user.entity';
+
+@Entity({ name: 'reservation_results' })
+export class ReservationResultEntity extends BaseEntity {
+    @ManyToOne(() => Reservation, reservation => reservation.results)
+    @JoinColumn({ name: 'reservation_id' })
+    reservation: Reservation;
+
+    @ManyToOne(() => User, user => user.sharedReservationResults)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @Column()
+    isSuccess: boolean;
+
+    @Column({ nullable: true })
+    description?: string;
+
+    @Column({ nullable: true })
+    successDatetime?: Date;
+}
