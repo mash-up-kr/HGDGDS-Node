@@ -5,11 +5,11 @@ import { User } from '@/users/entities/user.entity';
 
 @Entity({ name: 'reservation_results' })
 export class ReservationResultEntity extends BaseEntity {
-    @ManyToOne(() => Reservation, reservation => reservation.results)
+    @ManyToOne(() => Reservation)
     @JoinColumn({ name: 'reservation_id' })
     reservation: Reservation;
 
-    @ManyToOne(() => User, user => user.sharedReservationResults)
+    @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
 

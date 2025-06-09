@@ -5,11 +5,11 @@ import { NotificationType } from "@/common/enums/notification-type";
 
 @Entity({ name: 'notification_logs' })
 export class NotificationLog extends BaseEntity {
-    @ManyToOne(() => User, user => user.receivedNotifications)
+    @ManyToOne(() => User)
     @JoinColumn({ name: 'recipient_user_id' })
     recipientUser: User;
 
-    @ManyToOne(() => User, user => user.sentNotifications, {
+    @ManyToOne(() => User, {
         nullable: true
     })
 

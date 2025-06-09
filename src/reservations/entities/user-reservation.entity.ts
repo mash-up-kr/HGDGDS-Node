@@ -6,11 +6,11 @@ import { UserReservationStatus } from "@/common/enums/user-reservation-status";
 
 @Entity({ name: 'user_reservations' })
 export class UserReservation extends BaseEntity {
-    @ManyToOne(() => User, user => user.participatedReservations)
+    @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Reservation, reservation => reservation.userReservations)
+    @ManyToOne(() => Reservation)
     @JoinColumn({ name: 'reservation_id' })
     reservation: Reservation;
 

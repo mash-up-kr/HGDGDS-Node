@@ -1,8 +1,5 @@
-import { Entity, Column, Unique, OneToMany } from 'typeorm';
+import { Entity, Column, Unique } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
-import { Reservation } from '@/reservations/entities/reservation.entity';
-import { NotificationLog } from "@/notification-logs/entities/notification-log.entity";
-import { UserReservation } from "@/reservations/entities/user-reservation.entity";
 import { UserRole } from "@/common/enums/user-role";
 
 @Entity({ name: 'users' })
@@ -29,13 +26,4 @@ export class User extends BaseEntity {
 
   @Column({ name: 'poke_alarm_setting', type: 'boolean', default: true })
   pokeAlarmSetting: boolean;
-
-  @OneToMany(() => Reservation, reservation => reservation.host)
-  hostedReservations: Reservation[];
-
-  @OneToMany(() => NotificationLog, log => log.recipientUser)
-  receivedNotifications: NotificationLog[];
-
-  @OneToMany(() => UserReservation, userReservation => userReservation.user)
-  participatedReservations: UserReservation[];
 }
