@@ -4,14 +4,7 @@ import { User } from "@/users/entities/user.entity";
 import { SimilarGroup } from "@/similar-groups/entities/similar-groups.entity";
 import { ReservationResultEntity } from "@/reservations/entities/reservation-result.entity";
 import { UserReservation } from "@/reservations/entities/user-reservation.entity";
-
-export enum ReservationCategory {
-    FOOD = "맛집",
-    ACTIVITY = "액티비티",
-    PERFORMANCE = "공연",
-    SPORTS = "운동경기",
-    ETC = "기타",
-}
+import { ReservationCategory } from "@/common/enums/reservation-category";
 
 @Entity({ name: "reservations" })
 export class Reservation extends BaseEntity {

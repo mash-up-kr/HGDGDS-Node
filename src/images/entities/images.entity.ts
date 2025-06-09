@@ -1,11 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
-
-export enum ImageParentType {
-    USER_PROFILE = 'USER_PROFILE',
-    RESERVATION = 'RESERVATION',
-    RESERVATION_RESULT = 'RESERVATION_RESULT',
-}
+import { ImageParentType } from "@/common/enums/image-parent-type";
 
 @Entity({ name: 'images' })
 export class Image extends BaseEntity {

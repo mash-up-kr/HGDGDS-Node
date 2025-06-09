@@ -1,11 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
 import { User } from '@/users/entities/user.entity';
-
-export enum NotificationType {
-    REMINDER = 'REMINDER',
-    POKE = 'POKE',
-}
+import { NotificationType } from "@/common/enums/notification-type";
 
 @Entity({ name: 'notification_logs' })
 export class NotificationLog extends BaseEntity {
@@ -20,7 +16,7 @@ export class NotificationLog extends BaseEntity {
     @JoinColumn({ name: 'sender_user_id' })
     senderUser?: User;
 
-    @Column({ type: 'enum', enum: NotificationType })
+    @Column({ name: 'notification_type', type: 'enum', enum: NotificationType })
     notificationType: NotificationType;
 
     @Column()

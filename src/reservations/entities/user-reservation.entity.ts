@@ -2,13 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
 import { User } from '@/users/entities/user.entity';
 import { Reservation } from '@/reservations/entities/reservation.entity';
-
-export enum UserReservationStatus {
-    DEFAULT = '기본',
-    READY = '준비완료',
-    FAIL = '실패',
-    SUCCESS = '성공',
-}
+import { UserReservationStatus } from "@/common/enums/user-reservation-status";
 
 @Entity({ name: 'user_reservations' })
 export class UserReservation extends BaseEntity {
