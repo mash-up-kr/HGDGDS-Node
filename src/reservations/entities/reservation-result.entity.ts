@@ -17,8 +17,8 @@ export class ReservationResultEntity extends BaseEntity {
     isSuccess: boolean;
 
     @Column({ nullable: true })
-    description?: string;
+    description: string | null;
 
     @Column({ name: 'success_datetime', nullable: true })
-    successDatetime?: Date;
+    successDatetime: Date | null;
 }

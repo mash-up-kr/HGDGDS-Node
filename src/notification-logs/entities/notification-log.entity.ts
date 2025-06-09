@@ -31,7 +31,7 @@ export class NotificationLog extends BaseEntity {
     scheduledAt: Date;
 
     @Column({ name: 'sent_at', nullable: true })
-    sentAt?: Date;
+    sentAt: Date | null;
 
     @Column({ name: 'device_id' })
     deviceId: string;

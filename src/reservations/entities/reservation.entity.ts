@@ -12,14 +12,14 @@ export class Reservation extends BaseEntity {
     @Column({ type: "enum", enum: ReservationCategory })
     category: ReservationCategory;
 
-    @Column()
+    @Column({ name: 'reservation_datetime' })
     reservationDatetime: Date;
 
     @Column({ nullable: true })
-    description?: string;
+    description: string | null;
 
     @Column({ name: 'link_url', nullable: true })
-    linkUrl?: string;
+    linkUrl: string | null;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: "host_id" })

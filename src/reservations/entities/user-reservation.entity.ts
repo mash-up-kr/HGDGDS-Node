@@ -22,5 +22,5 @@ export class UserReservation extends BaseEntity {
     status: UserReservationStatus;
 
     @Column({ name: 'status_message', nullable: true })
-    statusMessage?: string;
+    statusMessage: string | null;
 }
