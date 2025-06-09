@@ -12,7 +12,6 @@ export class NotificationLog extends BaseEntity {
     @ManyToOne(() => User, {
         nullable: true
     })
-
     @JoinColumn({ name: 'sender_user_id' })
     senderUser?: User;
 
@@ -28,10 +27,10 @@ export class NotificationLog extends BaseEntity {
     @Column({ name: 'is_read', default: false })
     isRead: boolean;
 
-    @Column()
+    @Column({ name: 'scheduled_at' })
     scheduledAt: Date;
 
-    @Column({ nullable: true })
+    @Column({ name: 'sent_at', nullable: true })
     sentAt?: Date;
 
     @Column({ name: 'device_id' })

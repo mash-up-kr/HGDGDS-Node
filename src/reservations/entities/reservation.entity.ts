@@ -18,7 +18,7 @@ export class Reservation extends BaseEntity {
     @Column({ nullable: true })
     description?: string;
 
-    @Column({ nullable: true })
+    @Column({ name: 'link_url', nullable: true })
     linkUrl?: string;
 
     @ManyToOne(() => User)

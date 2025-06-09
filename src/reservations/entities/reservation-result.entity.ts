@@ -13,12 +13,12 @@ export class ReservationResultEntity extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ name: 'is_success' })
     isSuccess: boolean;
 
     @Column({ nullable: true })
     description?: string;
 
-    @Column({ nullable: true })
+    @Column({ name: 'success_datetime', nullable: true })
     successDatetime?: Date;
 }
