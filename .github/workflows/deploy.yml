@@ -70,7 +70,6 @@ jobs:
           script: |
             DOCKER_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}"
 
-            # GitHub Secret에 저장된 환경변수 값을 .env 파일로 생성합니다.
             echo "${{ secrets.ENV }}" > .env
 
             echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
