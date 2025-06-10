@@ -1,4 +1,4 @@
-name: Publish image to Docker Hub
+name: Publish image to Docker Hub and deploy to EC2
 
 on:
   [workflow_dispatch]
@@ -11,10 +11,53 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+
+      - name: Bump version and Build Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+
+      - name: Create .env file
+        run: |
+          echo '${{ secrets.ENV }}' > .env
+
       - name: build
         run: |
-          docker build . -t ${{ secrets.DOCKER_USERNAME }}/hgdgds:latest
+          docker build . -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest
+
       - name: publish
         run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/hgdgds:latest
+          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest
+          docker logout
+
+      - name: ssh into ec2 and deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            DOCKER_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}"
+            EC2_ENV_DIR="/home/${{ secrets.EC2_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}"
+            
+            mkdir -p $EC2_ENV_DIR
+            cd $EC2_ENV_DIR
+            
+            echo '${{ secrets.ENV }}' > .env
+            
+            echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            docker stop ${{ secrets.DOCKER_REPOSITORY_NAME }} || true
+            docker rm ${{ secrets.DOCKER_REPOSITORY_NAME }} || true
+            docker pull $DOCKER_IMAGE:latest
+            docker run -d --name ${{ secrets.DOCKER_REPOSITORY_NAME }} -p ${{ secrets.APP_EXTERNAL_PORT }}:${{ secrets.APP_EXTERNAL_PORT }} --env-file .env $DOCKER_IMAGE:latest
+            docker logout
