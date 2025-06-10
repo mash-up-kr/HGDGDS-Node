@@ -1,45 +1,67 @@
 name: Publish image to Docker Hub and deploy to EC2
 
 on:
-  [workflow_dispatch]
+  workflow_dispatch:
 
 jobs:
-  publish_image:
+  publish_and_deploy:
     runs-on: ubuntu-latest
     environment: production
 
+    env:
+      AWS_REGION: ap-northeast-2
+      AWS_SG_NAME: ${{ secrets.AWS_SG_NAME }}
+
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Bump version and Build Tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
+        uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create a GitHub release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
 
-      - name: Create .env file
-        run: |
-          echo '${{ secrets.ENV }}' > .env
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: build
-        run: |
-          docker build . -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:${{ steps.tag_version.outputs.new_tag }}, ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest
 
-      - name: publish
-        run: |
-          echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest
-          docker logout
+      - name: Get GitHub Actions' IP address
+        id: ip
+        uses: haythem/public-ip@v1.3
 
-      - name: ssh into ec2 and deploy
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Add GitHub IP to AWS Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-name ${{ env.AWS_SG_NAME }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+      - name: SSH into EC2 and deploy
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -47,16 +69,31 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             DOCKER_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY_NAME }}"
-            EC2_ENV_DIR="/home/${{ secrets.EC2_USERNAME }}/HGDGDS-Node"
-            
-            mkdir -p $EC2_ENV_DIR
-            cd $EC2_ENV_DIR
-            
-            echo '${{ secrets.ENV }}' > .env
-            
+
+            # GitHub Secret에 저장된 환경변수 값을 .env 파일로 생성합니다.
+            echo "${{ secrets.ENV }}" > .env
+
             echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
             docker stop ${{ secrets.DOCKER_REPOSITORY_NAME }} || true
             docker rm ${{ secrets.DOCKER_REPOSITORY_NAME }} || true
+            
             docker pull $DOCKER_IMAGE:latest
-            docker run -d --name ${{ secrets.DOCKER_REPOSITORY_NAME }} -p ${{ secrets.APP_EXTERNAL_PORT }}:${{ secrets.APP_EXTERNAL_PORT }} --env-file .env $DOCKER_IMAGE:latest
+            
+            docker run -d \
+              --name ${{ secrets.DOCKER_REPOSITORY_NAME }} \
+              -p ${{ secrets.APP_EXTERNAL_PORT }}:${{ secrets.APP_EXTERNAL_PORT }} \
+              --env-file .env \
+              $DOCKER_IMAGE:latest
+            
+            docker image prune -f
             docker logout
+
+      - name: Remove GitHub IP from AWS Security Group
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-name ${{ env.AWS_SG_NAME }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
