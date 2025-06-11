@@ -30,6 +30,6 @@ export class User extends BaseEntity {
     @Column({ name: 'reservation_alarm_setting', type: 'boolean', default: true })
     reservationAlarmSetting: boolean;
 
-    @Column({ name: 'poke_alarm_setting', type: 'boolean', default: true })
-    pokeAlarmSetting: boolean;
+    @Column({ name: 'kok_alarm_setting', type: 'boolean', default: true })
+    kokAlarmSetting: boolean;
 }
