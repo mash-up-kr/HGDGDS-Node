@@ -89,9 +89,9 @@ export class ReservationsController {
       message: '제목은 필수입니다.',
     },
   })
-  async createReservation(
+  createReservation(
     @Body() createDto: CreateReservationRequestDto,
-  ): Promise<CreateReservationResponseDto> {
+  ): CreateReservationResponseDto {
     return {
       code: '201',
       message: 'OK',
@@ -176,10 +176,10 @@ export class ReservationsController {
       message: '이미 참가한 예약입니다.',
     },
   })
-  async joinReservation(
+  joinReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @Body() joinDto: JoinReservationRequestDto,
-  ): Promise<JoinReservationResponseDto> {
+  ): JoinReservationResponseDto {
     // 임시로 최대 20명 제한 예시
     const maxParticipants = 20;
     const currentParticipants = 3;
@@ -236,9 +236,9 @@ export class ReservationsController {
       message: '유효하지 않은 토큰입니다.',
     },
   })
-  async getReservations(
+  getReservations(
     @Query() query: GetReservationsQueryDto,
-  ): Promise<GetReservationsResponseDto> {
+  ): GetReservationsResponseDto {
     const mockReservations = [
       {
         reservationId: 1,
@@ -326,9 +326,9 @@ export class ReservationsController {
       message: '해당 예약에 접근할 권한이 없습니다.',
     },
   })
-  async getReservationMembers(
+  getReservationMembers(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-  ): Promise<GetReservationMembersResponseDto> {
+  ): GetReservationMembersResponseDto {
     return {
       code: '200',
       message: 'OK',
@@ -469,10 +469,10 @@ export class ReservationsController {
       message: '이미 시작된 예약은 수정할 수 없습니다.',
     },
   })
-  async updateReservation(
+  updateReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @Body() updateDto: UpdateReservationRequestDto,
-  ): Promise<UpdateReservationResponseDto> {
+  ): UpdateReservationResponseDto {
     return {
       code: '200',
       message: 'OK',
@@ -533,9 +533,9 @@ export class ReservationsController {
       message: '찾을 수 없는 예약입니다.',
     },
   })
-  async getReservationDetail(
+  getReservationDetail(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-  ): Promise<GetReservationDetailResponseDto> {
+  ): GetReservationDetailResponseDto {
     return {
       code: '200',
       message: 'OK',

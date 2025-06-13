@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Patch,
   Body,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,9 +13,14 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CheckNicknameQueryDto, CheckNicknameResponseDto, GetMyInfoResponseDto, UpdateUserSettingsRequestDto, UpdateUserSettingsResponseDto } from '../docs/dto/user.dto';
+import {
+  CheckNicknameQueryDto,
+  CheckNicknameResponseDto,
+  GetMyInfoResponseDto,
+  UpdateUserSettingsRequestDto,
+  UpdateUserSettingsResponseDto,
+} from '../docs/dto/user.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
-
 
 @ApiTags('사용자')
 @Controller('users')
@@ -39,8 +43,8 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1003',
-      message: '유효하지 않은 토큰입니다.'
-    }
+      message: '유효하지 않은 토큰입니다.',
+    },
   })
   @ApiResponse({
     status: 404,
@@ -48,15 +52,15 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1000',
-      message: '찾을 수 없는 유저입니다.'
-    }
+      message: '찾을 수 없는 유저입니다.',
+    },
   })
-  async getMyInfo(): Promise<GetMyInfoResponseDto> {
+  getMyInfo(): GetMyInfoResponseDto {
     // TODO: 실제 서비스 로직 구현
     // - JWT에서 사용자 ID 추출
     // - 사용자 정보 조회
     // - 예약 통계 계산 (총 예약 수, 성공 예약 수, 성공률)
-    
+
     return {
       code: '200',
       message: 'OK',
@@ -73,10 +77,10 @@ export class UsersController {
         kokAlarmSetting: true,
         createdAt: '2024-01-15T10:00:00Z',
         updatedAt: '2024-06-03T15:30:00Z',
-      }
+      },
     };
   }
-  
+
   @Get('check-nickname')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -95,9 +99,9 @@ export class UsersController {
           message: 'OK',
           data: {
             nickname: '김철수',
-            available: true
-          }
-        }
+            available: true,
+          },
+        },
       },
       unavailable: {
         summary: '이미 사용 중인 닉네임',
@@ -106,11 +110,11 @@ export class UsersController {
           message: 'OK',
           data: {
             nickname: '김철수',
-            available: false
-          }
-        }
-      }
-    }
+            available: false,
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: 400,
@@ -118,20 +122,22 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1004',
-      message: '닉네임 형식이 올바르지 않습니다.'
-    }
+      message: '닉네임 형식이 올바르지 않습니다.',
+    },
   })
-  async checkNickname(@Query() query: CheckNicknameQueryDto): Promise<CheckNicknameResponseDto> {
+  checkNickname(
+    @Query() query: CheckNicknameQueryDto,
+  ): CheckNicknameResponseDto {
     // TODO: 실제 서비스 로직 구현 (DB에서 닉네임 중복 확인)
     const isAvailable = Math.random() > 0.5; // 임시 랜덤 로직
-    
+
     return {
       code: '200',
       message: 'OK',
       data: {
         nickname: query.nickname,
         available: isAvailable,
-      }
+      },
     };
   }
 
@@ -140,7 +146,8 @@ export class UsersController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: '내 설정 변경',
-    description: '닉네임, 프로필 이미지, 예약 알림 설정, 콕찌르기 알림 설정을 변경합니다.',
+    description:
+      '닉네임, 프로필 이미지, 예약 알림 설정, 콕찌르기 알림 설정을 변경합니다.',
   })
   @ApiResponse({
     status: 200,
@@ -153,8 +160,8 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1005',
-      message: '이미 사용 중인 닉네임입니다.'
-    }
+      message: '이미 사용 중인 닉네임입니다.',
+    },
   })
   @ApiResponse({
     status: 401,
@@ -162,8 +169,8 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1003',
-      message: '유효하지 않은 토큰입니다.'
-    }
+      message: '유효하지 않은 토큰입니다.',
+    },
   })
   @ApiResponse({
     status: 404,
@@ -171,12 +178,12 @@ export class UsersController {
     type: ErrorResponseDto,
     example: {
       code: '1000',
-      message: '찾을 수 없는 유저입니다.'
-    }
+      message: '찾을 수 없는 유저입니다.',
+    },
   })
-  async updateMySettings(@Body() updateDto: UpdateUserSettingsRequestDto): Promise<UpdateUserSettingsResponseDto> {
-   
-    
+  updateMySettings(
+    @Body() updateDto: UpdateUserSettingsRequestDto,
+  ): UpdateUserSettingsResponseDto {
     return {
       code: '200',
       message: 'OK',
@@ -184,11 +191,13 @@ export class UsersController {
         userId: 123,
         deviceId: 'iPhone_ABC123XYZ',
         nickname: updateDto.nickname || '기존닉네임', // 기본값 처리
-        profileImageName: updateDto.profileImageCode ? `IMG_00${updateDto.profileImageCode}` : 'IMG_001', // 이미지 변경 처리
+        profileImageName: updateDto.profileImageCode
+          ? `IMG_00${updateDto.profileImageCode}`
+          : 'IMG_001', // 이미지 변경 처리
         reservationAlarmSetting: updateDto.reservationAlarmSetting ?? true, // null 병합 연산자
         kokAlarmSetting: updateDto.kokAlarmSetting ?? true,
         updatedAt: new Date().toISOString(),
-      }
+      },
     };
   }
 }

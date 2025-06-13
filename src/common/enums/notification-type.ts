@@ -1,4 +1,4 @@
 export enum NotificationType {
-    REMINDER = 'REMINDER',
-    KOK = 'KOK',
+  REMINDER = 'REMINDER',
+  KOK = 'KOK',
 }
