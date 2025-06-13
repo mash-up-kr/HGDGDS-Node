@@ -3,14 +3,14 @@ import { PaginationMetadata } from '@/common/dto/response';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ApiProperty } from '@nestjs/swagger';
-import { 
-  IsString, 
-  IsNotEmpty, 
-  IsOptional, 
-  IsUrl, 
-  IsArray, 
-  ArrayMaxSize, 
-  IsNumber, 
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsUrl,
+  IsArray,
+  ArrayMaxSize,
+  IsNumber,
   IsDateString,
   IsIn,
   MaxLength,
@@ -69,10 +69,7 @@ export class CreateReservationRequestDto {
 
   @ApiProperty({
     description: 'S3 이미지 URL 목록 (최대 3개)',
-    example: [
-      'path/image1.jpg',
-      'path/image1.jpg'
-    ],
+    example: ['path/image1.jpg', 'path/image1.jpg'],
     required: false,
     maxItems: 3,
   })
@@ -81,7 +78,6 @@ export class CreateReservationRequestDto {
   @ArrayMaxSize(3)
   @IsUrl({}, { each: true })
   images?: string[];
-
 }
 
 export class CreateReservationDataDto {
@@ -125,10 +121,7 @@ export class CreateReservationDataDto {
 
   @ApiProperty({
     description: 'S3 이미지 URL 목록',
-    example: [
-      'path/image1.jpg',
-      'path/image1.jpg'
-    ],
+    example: ['path/image1.jpg', 'path/image1.jpg'],
   })
   images: string[];
 
@@ -137,7 +130,6 @@ export class CreateReservationDataDto {
     example: 1,
   })
   hostId: number;
-
 
   @ApiProperty({
     description: '예약 생성 시간',
@@ -328,7 +320,7 @@ export class ReservationItemDto {
   @ApiProperty({
     description: '예약 카테고리',
     example: '운동경기',
-    enum: ReservationCategory
+    enum: ReservationCategory,
   })
   category: string;
 
@@ -393,7 +385,7 @@ export class GetReservationsDataDto {
     description: '페이지네이션 메타데이터',
     type: () => PaginationMetadata,
   })
-  metadata: PaginationMetadata; 
+  metadata: PaginationMetadata;
 }
 
 export class GetReservationsResponseDto {
@@ -546,10 +538,7 @@ export class ReservationDetailDto {
 
   @ApiProperty({
     description: '예약 이미지 URL 목록',
-    example: [
-      'path/image1.jpg',
-      'path/image1.jpg'
-    ],
+    example: ['path/image1.jpg', 'path/image1.jpg'],
   })
   images: string[];
 
@@ -636,7 +625,7 @@ export class MemberDto {
   @ApiProperty({
     description: '참가자의 예약 상태',
     example: 'READY',
-    enum: UserReservationStatus
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -749,7 +738,6 @@ export class GetReservationMembersResponseDto {
   data: ReservationMembersDataDto;
 }
 
-
 /**
  * 예약정보 수정 api
  */
@@ -807,10 +795,7 @@ export class UpdateReservationRequestDto {
 
   @ApiProperty({
     description: 'S3 이미지 URL 목록 (최대 3개)',
-    example: [
-      'path/image1.jpg',
-      'path/image1.jpg'
-    ],
+    example: ['path/image1.jpg', 'path/image1.jpg'],
     required: false,
     maxItems: 3,
   })
@@ -862,10 +847,7 @@ export class UpdateReservationDataDto {
 
   @ApiProperty({
     description: '수정된 이미지 URL 목록',
-    example: [
-      'path/image1.jpg',
-      'path/image1.jpg'
-    ],
+    example: ['path/image1.jpg', 'path/image1.jpg'],
   })
   images: string[];
 
@@ -918,5 +900,4 @@ export class UpdateReservationResponseDto {
     type: UpdateReservationDataDto,
   })
   data: UpdateReservationDataDto;
-
 }

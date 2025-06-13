@@ -32,7 +32,8 @@ export class BasePaginationQueryDto {
   readonly limit: number = 10;
 
   @ApiProperty({
-    description: 'Pagination의 Order기준입니다. 기본값은 DESC입니다. 오름차순 ASC',
+    description:
+      'Pagination의 Order기준입니다. 기본값은 DESC입니다. 오름차순 ASC',
     default: OrderCondition.DESC,
     required: false,
   })

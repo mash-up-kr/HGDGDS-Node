@@ -11,7 +11,8 @@ import { GlobalAuthGuard } from './common/guard/global-auth.guard';
 import { ImagesModule } from './images/images.module';
 import { NotificationLogsModule } from './notification-logs/notification-logs.module';
 import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
-import { ReservationsModule } from './reservations/reservations.modules';
+import { FilesModule } from './files/files.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -25,6 +26,8 @@ import { ReservationsModule } from './reservations/reservations.modules';
     SimilarGroupsModule,
     ImagesModule,
     NotificationLogsModule,
+    FilesModule,
+    ReservationsModule,
   ],
   controllers: [AppController],
   providers: [
