@@ -216,7 +216,7 @@ import { PaginationMetadata } from '@/common/dto/response';
         {
           id: 1,
           title: '매쉬업 아구찜 직팬 모임',
-          category: '스포츠',
+          category: '운동경기',
           reservationDatetime: '2025-07-11T19:00:00+09:00',
           participantCount: 3,
           maxParticipants: 20,
@@ -229,7 +229,7 @@ import { PaginationMetadata } from '@/common/dto/response';
         {
           id: 2,
           title: '매쉬업 아구찜 직팬 모임',
-          category: '스포츠',
+          category: '운동경기',
           reservationDatetime: '2025-07-11T19:00:00+09:00',
           participantCount: 3,
           maxParticipants: 20,

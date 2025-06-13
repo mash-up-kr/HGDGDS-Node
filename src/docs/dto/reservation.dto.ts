@@ -329,7 +329,7 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '예약 카테고리',
-    example: '스포츠',
+    example: '운동경기',
     enum: ReservationCategory
   })
   category: string;
