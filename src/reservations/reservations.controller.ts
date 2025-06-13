@@ -71,7 +71,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
     async createReservation(@Body() createDto: CreateReservationRequestDto): Promise<CreateReservationResponseDto> {
    
       return {
-        code: '200',
+        code: '201',
         message: 'OK',
         data: {
           id: 42,
