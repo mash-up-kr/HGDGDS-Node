@@ -5,13 +5,13 @@ export class CommonResponse<T> {
   code: number;
   @ApiProperty({ example: 'OK' })
   message: string;
-  @ApiProperty({ type: () => Object })
+  @ApiProperty({ type: () => Object, required: false })
   data?: T;
 
   constructor(code: number, message: string, data?: T) {
     this.code = code;
     this.message = message;
-    if (data) {
+    if (data !== undefined) {
       this.data = data;
     }
   }
