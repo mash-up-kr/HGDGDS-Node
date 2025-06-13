@@ -3,7 +3,6 @@ import { PaginationMetadata } from '@/common/dto/response';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { 
   IsString, 
   IsNotEmpty, 
@@ -15,7 +14,6 @@ import {
   IsDateString,
   IsIn,
   MaxLength,
-  Min
 } from 'class-validator';
 
 /**
