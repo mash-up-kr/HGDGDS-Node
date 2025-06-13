@@ -5,20 +5,20 @@ import { User } from '@/users/entities/user.entity';
 
 @Entity({ name: 'reservation_results' })
 export class ReservationResultEntity extends BaseEntity {
-    @ManyToOne(() => Reservation)
-    @JoinColumn({ name: 'reservation_id' })
-    reservation: Reservation;
+  @ManyToOne(() => Reservation)
+  @JoinColumn({ name: 'reservation_id' })
+  reservation: Reservation;
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-    @Column({ name: 'is_success' })
-    isSuccess: boolean;
+  @Column({ name: 'is_success', type: 'boolean' })
+  isSuccess: boolean;
 
-    @Column({ nullable: true })
-    description: string | null;
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
 
-    @Column({ name: 'success_datetime', nullable: true })
-    successDatetime: Date | null;
+  @Column({ name: 'success_datetime', type: 'timestamp', nullable: true })
+  successDatetime: Date | null;
 }
