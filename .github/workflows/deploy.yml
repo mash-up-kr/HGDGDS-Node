@@ -1,12 +1,13 @@
 name: Publish image to Docker Hub and deploy to EC2
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - prod
 
 jobs:
   publish_and_deploy:
     runs-on: ubuntu-latest
-    environment: production
 
     env:
       AWS_REGION: ap-northeast-2
