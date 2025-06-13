@@ -1,7 +1,6 @@
 import { CommonResponse } from '@/common/response/common.response';
 import { Controller, Get, Patch, Post } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -14,8 +13,9 @@ import { CommonResponseDecorator } from '@/common/decorator/common.response.deco
 import { CreateReservationResultDto } from './request/create.reservation.result.dto';
 import { ReservationResultDto } from './response/result.dto';
 import { RivalResponse } from './response/rival.response';
+import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 
-@ApiBearerAuth()
+@ApiAuth()
 @ApiTags('Reservations')
 @Controller('reservations')
 export class ReservationsController {

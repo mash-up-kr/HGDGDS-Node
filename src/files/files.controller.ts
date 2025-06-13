@@ -1,15 +1,11 @@
 import { CommonResponse } from '@/common/response/common.response';
 import { Controller, Post } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiTags,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiParam } from '@nestjs/swagger';
 import { PresignedUrlResponse } from './response/presigned.url.response';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
+import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 
-@ApiBearerAuth()
+@ApiAuth()
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
