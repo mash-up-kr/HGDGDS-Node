@@ -32,13 +32,13 @@ export class BasePaginationQueryDto {
   readonly limit: number = 10;
 
   @ApiProperty({
-    description: 'Pagination의 Order기준입니다. 기본값은 ASC입니다',
-    default: OrderCondition.ASC,
+    description: 'Pagination의 Order기준입니다. 기본값은 DESC입니다. 오름차순 ASC',
+    default: OrderCondition.DESC,
     required: false,
   })
   @IsEnum(OrderCondition)
   @IsOptional()
-  readonly order: OrderCondition = OrderCondition.ASC;
+  readonly order: OrderCondition = OrderCondition.DESC;
 
   // getter: offset
   get offset(): number {

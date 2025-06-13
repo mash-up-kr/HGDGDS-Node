@@ -21,6 +21,7 @@ import { ReservationsModule } from './reservations/reservations.module';
     }),
     TypeOrmModule.forRoot(typeormConfig),
     UsersModule,
+    ReservationsModule,
     AuthModule,
     SimilarGroupsModule,
     ImagesModule,
