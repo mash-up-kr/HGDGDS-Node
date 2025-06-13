@@ -11,6 +11,7 @@ import { GlobalAuthGuard } from './common/guard/global-auth.guard';
 import { ImagesModule } from './images/images.module';
 import { NotificationLogsModule } from './notification-logs/notification-logs.module';
 import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
+import { ReservationsModule } from './reservations/reservations.modules';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
     }),
     TypeOrmModule.forRoot(typeormConfig),
     UsersModule,
+    ReservationsModule,
     AuthModule,
     SimilarGroupsModule,
     ImagesModule,
