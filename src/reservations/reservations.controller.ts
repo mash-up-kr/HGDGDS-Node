@@ -315,56 +315,56 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
             userId: 1,
             nickname: '김파디',
             profileImageCode: '01',
-            status: 'success',
+            status: 'SUCCESS',
             statusKr: '성공',
             statusMessage: '예약 내가 찜닷다',
-            isMaster: true
+            isHost: true
           },
           {
             userId: 2,
             nickname: '이파디',
             profileImageCode: '02',
-            status: 'fail',
+            status: 'FAIL',
             statusKr: '실패',
             statusMessage: '아쉬워서 화이팅',
-            isMaster: false
+            isHost: false
           },
           {
             userId: 3,
             nickname: '박파디',
             profileImageCode: '03',
-            status: 'ready',
+            status: 'READY',
             statusKr: '준비완료!',
             statusMessage: '나만 믿어라',
-            isMaster: false
+            isHost: false
           },
           {
             userId: 4,
             nickname: '최파디',
             profileImageCode: '04',
-            status: 'default',
+            status: 'DEFAULT',
             statusKr: '기본',
             statusMessage: '까먹지마',
-            isMaster: false
+            isHost: false
           },
           {
             userId: 5,
             nickname: '정파디',
             profileImageCode: '05',
-            status: 'default',
+            status: 'DEFAULT',
             statusKr: '기본',
             statusMessage: null,
-            isMaster: false
+            isHost: false
           }
         ],
         me: {
           userId: 123,
           nickname: '김철수',
           profileImageCode: '01',
-          status: 'default',
+          status: 'DEFAULT',
           statusKr: '기본',
           statusMessage: '예약 내가 찢는다!',
-          isMaster: false
+          isHost: false
         },
         totalCount: 6
       }

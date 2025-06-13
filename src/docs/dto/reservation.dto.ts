@@ -635,7 +635,7 @@ export class MemberDto {
 
   @ApiProperty({
     description: '참가자의 예약 상태',
-    example: 'ready',
+    example: 'READY',
     enum: UserReservationStatus
   })
   status: string;
@@ -658,7 +658,7 @@ export class MemberDto {
     description: '호스트(마스터) 여부',
     example: false,
   })
-  isMaster: boolean;
+  isHost: boolean;
 }
 
 export class CurrentUserDto {
@@ -684,7 +684,7 @@ export class CurrentUserDto {
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
     example: 'default',
-    enum: ['default', 'ready', 'fail', 'success'],
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -706,7 +706,7 @@ export class CurrentUserDto {
     description: '현재 사용자가 호스트(마스터)인지 여부',
     example: false,
   })
-  isMaster: boolean;
+  isHost: boolean;
 }
 
 export class ReservationMembersDataDto {
