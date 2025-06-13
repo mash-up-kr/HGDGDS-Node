@@ -12,7 +12,7 @@ export class CreateReservationResultDto {
     example: ['path/image1.jpg', 'path/image2.jpg'],
     description: '결과 이미지 URL 배열',
   })
-  pictures: string[] | null;
+  images: string[] | null;
 
   @ApiProperty({
     description: '예약 일시 (ISO8601 형식)',
@@ -26,12 +26,12 @@ export class CreateReservationResultDto {
 
   constructor(
     isSuccess: boolean,
-    pictures: string[] | null,
+    images: string[] | null,
     datetime: string,
     description: string,
   ) {
     this.isSuccess = isSuccess;
-    this.pictures = pictures;
+    this.images = images;
     this.datetime = datetime;
     this.description = description;
   }

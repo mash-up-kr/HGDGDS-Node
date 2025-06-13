@@ -4,7 +4,7 @@ export class UpdateUserStatusRequest {
   @ApiProperty({
     description: '예약 준비완료 여부',
     enum: ['READY', 'CANCEL'],
-    example: 'READY or CANCLE',
+    example: 'READY',
     required: true,
     type: String,
   })

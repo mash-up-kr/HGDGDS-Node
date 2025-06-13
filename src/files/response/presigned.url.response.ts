@@ -7,6 +7,12 @@ export class PresignedUrlResponse {
   })
   url: string;
 
+  @ApiProperty({
+    description: '파일 저장 경로',
+    example: '/reservations/{reservation_id}/info/uuid.png',
+  })
+  path: string;
+
   constructor(url: string) {
     this.url = url;
   }

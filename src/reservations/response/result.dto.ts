@@ -23,21 +23,25 @@ export class ReservationResultDto {
     example: ['path/image1.jpg', 'path/image2.jpg'],
     description: '결과 이미지 URL 배열',
   })
-  pictures: string[] | null;
+  images: string[] | null;
 
   @ApiProperty({
     description: '예약 일시 (ISO8601 형식)',
     example: '2025-01-04T09:00:00+09:00',
   })
-  datetime: string;
+  resultDatetime: string;
 
   @ApiProperty()
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '2024-06-03T10:00:00Z',
+  })
   createdAt: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '2024-06-03T10:00:00Z',
+  })
   updatedAt: string;
 
   constructor(

@@ -35,7 +35,7 @@ export class ReservationsController {
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
@@ -45,7 +45,7 @@ export class ReservationsController {
     description: '예약시간 24시간 이내에만 준비완료 가능',
     schema: {
       example: {
-        code: 1001,
+        code: 2010,
         message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
       },
     },
@@ -68,7 +68,7 @@ export class ReservationsController {
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
@@ -78,7 +78,7 @@ export class ReservationsController {
     description: '예약시간 24시간 이내에만 메시지 변경 가능',
     schema: {
       example: {
-        code: 1001,
+        code: 2010,
         message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
       },
     },
@@ -89,13 +89,18 @@ export class ReservationsController {
   @ApiOperation({
     summary: '예약 결과 등록',
   })
+  @ApiParam({
+    name: 'reservationId',
+    description: '예약 ID',
+    example: '12345',
+  })
   @ApiBody({ type: CreateReservationResultDto })
   @ApiResponse({
     status: 404,
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
@@ -105,7 +110,7 @@ export class ReservationsController {
     description: '예약시간 이후에만 결과 등록 가능',
     schema: {
       example: {
-        code: 1003,
+        code: 2010,
         message: '예약시간 이후에만 접근 가능한 기능입니다.',
       },
     },
@@ -136,7 +141,7 @@ export class ReservationsController {
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
@@ -146,7 +151,7 @@ export class ReservationsController {
     description: '예약시간 24시간 이내에만 콕찌르기 가능',
     schema: {
       example: {
-        code: 1001,
+        code: 2010,
         message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
       },
     },
@@ -168,7 +173,7 @@ export class ReservationsController {
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
@@ -178,7 +183,7 @@ export class ReservationsController {
     description: '예약시간 이후에만 결과 조회 가능',
     schema: {
       example: {
-        code: 1003,
+        code: 2010,
         message: '예약시간 이후에만 접근 가능한 기능입니다.',
       },
     },
@@ -195,7 +200,7 @@ export class ReservationsController {
     description: '본인이 속한 예약만 접근 가능',
     schema: {
       example: {
-        code: 1002,
+        code: 2009,
         message: '본인이 속한 예약만 접근 가능한 기능입니다.',
       },
     },
