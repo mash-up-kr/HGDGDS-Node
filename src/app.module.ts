@@ -12,6 +12,7 @@ import { ImagesModule } from './images/images.module';
 import { NotificationLogsModule } from './notification-logs/notification-logs.module';
 import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
 import { FilesModule } from './files/files.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FilesModule } from './files/files.module';
     ImagesModule,
     NotificationLogsModule,
     FilesModule,
+    ReservationsModule,
   ],
   controllers: [AppController],
   providers: [

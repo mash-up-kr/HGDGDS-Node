@@ -6,7 +6,7 @@ export class CommonResponse<T> {
   @ApiProperty({ example: 'OK' })
   message: string;
   @ApiProperty({ type: () => Object })
-  data: T;
+  data?: T;
 
   constructor(code: number, message: string, data?: T) {
     this.code = code;

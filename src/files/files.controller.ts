@@ -2,11 +2,9 @@ import { CommonResponse } from '@/common/response/common.response';
 import { Controller, Post } from '@nestjs/common';
 import {
   ApiOperation,
-  ApiResponse,
   ApiTags,
   ApiParam,
   ApiBearerAuth,
-  ApiOkResponse,
 } from '@nestjs/swagger';
 import { PresignedUrlResponse } from './response/presigned.url.response';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
