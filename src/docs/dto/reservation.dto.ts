@@ -89,7 +89,7 @@ export class CreateReservationDataDto {
     description: '생성된 예약 ID',
     example: 42,
   })
-  id: number;
+  reservationId: number;
 
   @ApiProperty({
     description: '이벤트 제목',
@@ -204,7 +204,7 @@ export class ReservationSummaryDto {
     description: '예약 ID',
     example: 42,
   })
-  id: number;
+  reservationId: number;
 
   @ApiProperty({
     description: '예약 제목',
@@ -317,7 +317,7 @@ export class ReservationItemDto {
     description: '예약 ID',
     example: 1,
   })
-  id: number;
+  reservationId: number;
 
   @ApiProperty({
     description: '예약 제목',
@@ -424,7 +424,7 @@ export class HostInfoDto {
     description: '호스트 사용자 ID',
     example: 1,
   })
-  id: number;
+  hostId: number;
 
   @ApiProperty({
     description: '호스트 닉네임',
@@ -444,7 +444,7 @@ export class ParticipantDto {
     description: '참가자 사용자 ID',
     example: 2,
   })
-  id: number;
+  userId: number;
 
   @ApiProperty({
     description: '참가자 닉네임',
@@ -477,7 +477,7 @@ export class CurrentUserInfoDto {
     description: '현재 사용자 ID',
     example: 123,
   })
-  id: number;
+  userId: number;
 
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
@@ -510,7 +510,7 @@ export class ReservationDetailDto {
     description: '예약 ID',
     example: 42,
   })
-  id: number;
+  reservationId: number;
 
   @ApiProperty({
     description: '예약 제목',
@@ -826,7 +826,7 @@ export class UpdateReservationDataDto {
     description: '예약 ID',
     example: 42,
   })
-  id: number;
+  reservationId: number;
 
   @ApiProperty({
     description: '수정된 제목',

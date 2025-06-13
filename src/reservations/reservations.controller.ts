@@ -74,7 +74,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
         code: '201',
         message: 'OK',
         data: {
-          id: 42,
+          reservationId: 42,
           title: createDto.title,
           category: createDto.category,
           reservationDatetime: createDto.reservationDatetime,
@@ -175,7 +175,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
             availableSlots: maxParticipants - currentParticipants - 1,
           },
           reservation: {
-            id: reservationId,
+            reservationId: reservationId,
             title: '브런치 모임',
             category: '맛집',
             reservationDatetime: '2025-01-04T09:00:00+09:00',
@@ -217,7 +217,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
        
       const mockReservations = [
         {
-          id: 1,
+          reservationId: 1,
           title: '매쉬업 아구찜 직팬 모임',
           category: '운동경기',
           reservationDatetime: '2025-07-11T19:00:00+09:00',
@@ -230,7 +230,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
           isHost: false,
         },
         {
-          id: 2,
+          reservationId: 2,
           title: '매쉬업 아구찜 직팬 모임',
           category: '운동경기',
           reservationDatetime: '2025-07-11T19:00:00+09:00',
@@ -454,7 +454,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
       code: '200',
       message: 'OK',
       data: {
-        id: reservationId,
+        reservationId: reservationId,
         title: updateDto.title || '오아시스를 직접 본다니',
         category: updateDto.category || '아구',
         reservationDatetime: updateDto.reservationDatetime || '2025-08-21T19:00:00+09:00',
@@ -547,7 +547,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
       code: '200',
       message: 'OK',
       data: {
-        id: reservationId,
+        reservationId: reservationId,
         title: '오아시스를 직접 본다니',
         category: '공연',
         reservationDatetime: '2025-08-21T19:00:00+09:00',
@@ -559,12 +559,12 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
           'https://example.com/image3.jpg'
         ],
         host: {
-          id: 1,
+          hostId: 1,
           nickname: '김파디',
           profileImageName: 'IMG_001'
         },
         currentUser: {
-          id: 123,
+          userId: 123,
           status: 'default',
           isHost: false,
           canEdit: false,
