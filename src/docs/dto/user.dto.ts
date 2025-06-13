@@ -41,7 +41,7 @@ export class GetMyInfoDataDto {
     description: '프로필 이미지 종류',
     example: '01',
   })
-  imageKind: string;
+  profileImageCode: string;
 
   @ApiProperty({
     description: '예약 통계',
@@ -117,9 +117,9 @@ export class UpdateUserSettingsRequestDto {
   @IsString()
   @IsOptional()
   @Matches(/^0[1-5]$/, {
-    message: 'imageKind는 01부터 05까지의 값이어야 합니다.',
+    message: 'profileImageCode는 01부터 05까지의 값이어야 합니다.',
   })
-  imageKind?: string;
+  profileImageCode?: string;
 
   @ApiProperty({
     description: '예약 알림 수신 설정',

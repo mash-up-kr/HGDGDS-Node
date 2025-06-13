@@ -65,7 +65,7 @@ export class UsersController {
       data: {
         userId: 123,
         nickname: '남아라 병아리',
-        imageKind: '01',
+        profileImageCode: '01',
         statistics: {
           totalReservations: 3,
           successReservations: 2,
@@ -186,7 +186,7 @@ export class UsersController {
         userId: 123,
         deviceId: 'iPhone_ABC123XYZ',
         nickname: updateDto.nickname || '기존닉네임', // 기본값 처리
-        profileImageName: updateDto.imageKind ? `IMG_00${updateDto.imageKind}` : 'IMG_001', // 이미지 변경 처리
+        profileImageName: updateDto.profileImageCode ? `IMG_00${updateDto.profileImageCode}` : 'IMG_001', // 이미지 변경 처리
         reservationAlarmSetting: updateDto.reservationAlarmSetting ?? true, // null 병합 연산자
         kokAlarmSetting: updateDto.kokAlarmSetting ?? true,
         updatedAt: new Date().toISOString(),

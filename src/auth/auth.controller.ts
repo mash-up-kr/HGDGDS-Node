@@ -66,7 +66,7 @@ export class AuthController {
         userId: 123,
         deviceId: signUpDto.deviceId,
         nickname: signUpDto.nickname,
-        profileImageName: `IMG_00${signUpDto.imageKind}`,
+        profileImageName: `IMG_00${signUpDto.profileImageCode}`,
         createdAt: new Date().toISOString(),
       }
     };

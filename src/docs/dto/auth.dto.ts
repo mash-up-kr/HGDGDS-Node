@@ -29,9 +29,9 @@ export class SignUpRequestDto {
   })
   @IsString()
   @Matches(/^0[1-5]$/, {
-    message: 'imageKind는 01부터 05까지의 값이어야 합니다.',
+    message: 'profileImageCode는 01부터 05까지의 값이어야 합니다.',
   })
-  imageKind: string;
+  profileImageCode: string;
 }
 
 export class SignUpDataDto {
