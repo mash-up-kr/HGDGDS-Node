@@ -16,11 +16,9 @@ import {
 } from '@nestjs/swagger';
 import { CheckNicknameQueryDto, CheckNicknameResponseDto, GetMyInfoResponseDto, UpdateUserSettingsRequestDto, UpdateUserSettingsResponseDto } from '../docs/dto/user.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
-import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 
 
 @ApiTags('사용자')
-@UseGuards(GlobalAuthGuard)
 @Controller('users')
 export class UsersController {
   @Get('me')
