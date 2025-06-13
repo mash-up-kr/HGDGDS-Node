@@ -9,6 +9,7 @@ import {
     Get,
     Query,
     Patch,
+    UseGuards,
   } from '@nestjs/common';
   import {
     ApiTags,
@@ -21,9 +22,11 @@ import {
 import { CreateReservationRequestDto, CreateReservationResponseDto,  GetReservationDetailResponseDto,  GetReservationMembersResponseDto,  GetReservationsQueryDto, GetReservationsResponseDto, JoinReservationRequestDto, JoinReservationResponseDto, UpdateReservationRequestDto, UpdateReservationResponseDto } from '../docs/dto/reservation.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { PaginationMetadata } from '@/common/dto/response';
+import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 
   
   @ApiTags('예약')
+  @UseGuards(GlobalAuthGuard)
   @Controller('reservations')
   export class ReservationsController {
     @Post()
