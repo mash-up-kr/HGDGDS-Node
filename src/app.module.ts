@@ -8,6 +8,9 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { typeormConfig } from './common/database/config';
 import { GlobalAuthGuard } from './common/guard/global-auth.guard';
+import { ImagesModule } from './images/images.module';
+import { NotificationLogsModule } from './notification-logs/notification-logs.module';
+import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { GlobalAuthGuard } from './common/guard/global-auth.guard';
     TypeOrmModule.forRoot(typeormConfig),
     UsersModule,
     AuthModule,
+    SimilarGroupsModule,
+    ImagesModule,
+    NotificationLogsModule,
   ],
   controllers: [AppController],
   providers: [
