@@ -78,9 +78,9 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
           title: createDto.title,
           category: createDto.category,
           reservationDatetime: createDto.reservationDatetime,
-          url: createDto.url ?? null, 
+          linkUrl: createDto.linkUrl ?? null, 
           description: createDto.description ?? null, 
-          imageUrls: createDto.imageUrls ?? [],
+          images: createDto.images ?? [],
           hostId: 1, 
           createdAt: new Date().toISOString(),
         }
@@ -225,7 +225,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
           maxParticipants: 20,
           hostId: 1,
           hostNickname: '서연',
-          imageUrls: ['https://example.com/image1.jpg'],
+          images: ['path/image1.jpg'],
           userStatus: 'default',
           isHost: false,
         },
@@ -238,7 +238,7 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
           maxParticipants: 20,
           hostId: 2,
           hostNickname: '서연',
-          imageUrls: ['https://example.com/image2.jpg'],
+          images: ['path/image1.jpg'],
           userStatus: 'default',
           isHost: true,
         }
@@ -460,13 +460,14 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
         reservationDatetime: updateDto.reservationDatetime || '2025-08-21T19:00:00+09:00',
         description: updateDto.description ?? '1순위로 E열 선정하기. 만약에 안되면 H도 괜찮아요',
         linkUrl: updateDto.linkUrl ?? 'https://example.com/reservation-link',
-        imageUrls: updateDto.imageUrls ?? [
-          'https://example.com/image1.jpg',
-          'https://example.com/image2.jpg'
+        images: updateDto.images ?? [
+          'path/image1.jpg',
+          'path/image1.jpg'
         ],
         hostId: 1,
         participantCount: 4,
         maxParticipants: 20,
+        createddAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
     };
@@ -508,36 +509,6 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
       message: '찾을 수 없는 예약입니다.'
     }
   })
-  @ApiResponse({
-    status: 403,
-    description: '접근 권한 없음',
-    type: ErrorResponseDto,
-    examples: {
-      notParticipant: {
-        summary: '참가하지 않은 예약',
-        value: {
-          code: '2009',
-          message: '해당 예약에 접근할 권한이 없습니다.'
-        }
-      },
-      reservationNotStarted: {
-        summary: '아직 시작되지 않은 예약 (시간 제한)',
-        value: {
-          code: '2010',
-          message: '예약이 아직 시작되지 않았습니다.'
-        }
-      }
-    }
-  })
-  @ApiResponse({
-    status: 410,
-    description: '예약이 종료됨',
-    type: ErrorResponseDto,
-    example: {
-      code: '2011',
-      message: '예약이 이미 종료되었습니다.'
-    }
-  })
   async getReservationDetail(
     @Param('reservationId', ParseIntPipe) reservationId: number
   ): Promise<GetReservationDetailResponseDto> {
@@ -553,10 +524,10 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
         reservationDatetime: '2025-08-21T19:00:00+09:00',
         description: '1순위로 E열 선정하기. 만약에 안되면 H도 괜찮아요',
         linkUrl: 'https://example.com/reservation-link',
-        imageUrls: [
-          'https://example.com/image1.jpg',
-          'https://example.com/image2.jpg',
-          'https://example.com/image3.jpg'
+        images: [
+          'path/image1.jpg',
+          'path/image1.jpg',
+          'path/image1.jpg'
         ],
         host: {
           hostId: 1,
