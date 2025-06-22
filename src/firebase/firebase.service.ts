@@ -6,13 +6,15 @@ import {
 } from 'firebase-admin/lib/messaging/messaging-api';
 import firebaseConfig from '@/firebase/firebase.config';
 
+type FirebaseConfigType = () => admin.ServiceAccount;
+
 @Injectable()
 export class FirebaseService {
   constructor() {
     if (admin.apps.length === 0) {
       admin.initializeApp({
         credential: admin.credential.cert(
-          firebaseConfig() as admin.ServiceAccount,
+          (firebaseConfig as FirebaseConfigType)(),
         ),
       });
     }
@@ -31,7 +33,13 @@ export class FirebaseService {
       const response = await admin.messaging().send(payload);
       return { sent_message: response };
     } catch (error) {
-      return { error: error.code };
+      if (error && typeof error === 'object' && 'code' in error) {
+        return {
+          error: (error as { code: string }).code,
+          message: (error as { message: string }).message,
+        };
+      }
+      return { error: 'UnknownError', message: (error as Error).message };
     }
   }
 
@@ -47,9 +55,21 @@ export class FirebaseService {
         body: message,
       },
     };
-    if (tokens.length === 0) return { error: 'Tokens are empty' };
+    if (tokens.length === 0) {
+      return { error: 'Tokens are empty' };
+    }
 
-    const result = await admin.messaging().sendEachForMulticast(payload);
-    return result;
+    try {
+      const result = await admin.messaging().sendEachForMulticast(payload);
+      return result;
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error) {
+        return {
+          error: (error as { code: string }).code,
+          message: (error as { message: string }).message,
+        };
+      }
+      return { error: 'UnknownError', message: (error as Error).message };
+    }
   }
 }
