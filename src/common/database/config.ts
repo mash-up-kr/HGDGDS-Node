@@ -4,15 +4,19 @@ import { cwd } from 'process';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { getAppModeEnv } from '@/common';
 
-config({
-  path: getAppModeEnv(),
-});
+const appMode = process.env.APP_MODE ?? 'dev';
 
-const isDev = (process.env.APP_MODE ?? 'dev') === 'dev';
+if (appMode === 'dev') {
+  config({
+    path: getAppModeEnv(),
+  });
+}
+
+const isDev = appMode === 'dev';
 
 export const typeormConfig: DataSourceOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
+  host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT ?? 5432),
   username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'password',
