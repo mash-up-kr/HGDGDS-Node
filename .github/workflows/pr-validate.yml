@@ -1,3 +1,5 @@
+# .github/workflows/ci.yaml
+
 name: Run build and test
 
 on:
@@ -27,8 +29,14 @@ jobs:
       - name: Lint code
         run: yarn lint
 
-      - name: Run tests
-        run: yarn test
+      - name: Run tests with coverage
+        id: test-coverage
+        run: yarn test:cov
+
+      - name: Jest Coverage Report
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build project
         run: yarn build
