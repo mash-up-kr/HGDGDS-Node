@@ -34,6 +34,28 @@
 3. 클라이언트에서 `presigned URL`을 사용하여 PUT호출을 통해 파일을 업로드합니다.
 4. 예약 생성 or 예약 정보 업데이트 업데이트 API 호출 시, `filePath`(1)를 전달합니다.
 
+```mermaid
+
+sequenceDiagram
+    participant Client as 클라이언트
+    participant BE as 백엔드 서버
+    participant S3 as AWS S3
+
+    %% 업로드 플로우
+    Client->>BE: POST /file/presigned-url/upload <br/> body: 파일 경로 ex) /reservation/{reservationId}/info
+    BE->>S3: presigned URL 생성
+    S3-->>BE: presigned URL 반환
+    BE-->>Client: presigned URL, filePath 반환
+
+    Client->>S3: PUT presigned URL로 파일 업로드
+    S3-->>Client: 업로드 성공 응답
+
+    Client->>BE: (예약 생성/수정 API 호출 시) filePath 전달
+    BE-->>Client: response
+```
+
+### 파일 조회 플로우 예시
+
 프로필 이미지 조회
 
 1. 유저 정보 조회 API를 통해, profile image path를 전달받습니다.
@@ -41,3 +63,18 @@
 2. 클라이언트에서 profile image path를 이용해 `POST /file/presigned-url/access`을 호출합니다.
 3. 백엔드에서 `presigned URL`을 생성하여 클라이언트에 전달합니다.
 4. 클라이언트에서 `presigned URL`을 사용하여 GET호출을 통해 파일을 조회/다운로드합니다.
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트
+    participant BE as 백엔드 서버
+    participant S3 as AWS S3
+
+    Client->>BE: POST /file/presigned-url/access (body: filePath)
+    BE->>S3: (내부적으로 presigned URL 생성)
+    S3-->>BE: presigned URL 반환
+    BE-->>Client: presigned URL 반환
+
+    Client->>S3: GET presigned URL로 파일 다운로드
+    S3-->>Client: 파일 데이터 반환
+```
