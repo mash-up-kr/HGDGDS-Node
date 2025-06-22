@@ -14,10 +14,6 @@ export function IsValidFilePrefix(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any) {
-          console.log('akjfkljf');
-          console.log(
-            FILE_PREFIX_PATTERNS.some((pattern) => pattern.test(value)),
-          );
           return FILE_PREFIX_PATTERNS.some((pattern) => pattern.test(value));
         },
         defaultMessage() {

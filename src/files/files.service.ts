@@ -35,8 +35,7 @@ export class FilesService {
   ) {
     try {
       return await getSignedUrl(this.s3, command, { expiresIn });
-    } catch (error) {
-      console.error('Error generating presigned URL:', error);
+    } catch {
       throw new InternalServerErrorException(
         'Presigned URL 생성에 실패했습니다.',
       );
