@@ -8,6 +8,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { PresignedUrlResponse } from './response/presigned.url.response';
 import { isDev } from '@/common';
+import { InternalServerException } from '@/common/exception/internal-server.exception';
 
 @Injectable()
 export class FilesService {
@@ -36,9 +37,7 @@ export class FilesService {
     try {
       return await getSignedUrl(this.s3, command, { expiresIn });
     } catch {
-      throw new InternalServerErrorException(
-        'Presigned URL 생성에 실패했습니다.',
-      );
+      throw new InternalServerException('Presigned URL 생성에 실패했습니다.');
     }
   }
 

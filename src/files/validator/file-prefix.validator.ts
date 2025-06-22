@@ -13,7 +13,10 @@ export function IsValidFilePrefix(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any) {
+        validate(value: string) {
+          if (typeof value !== 'string') {
+            return false;
+          }
           return FILE_PREFIX_PATTERNS.some((pattern) => pattern.test(value));
         },
         defaultMessage() {

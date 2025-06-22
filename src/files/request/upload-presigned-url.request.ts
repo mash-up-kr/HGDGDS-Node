@@ -9,8 +9,8 @@ export class UploadPresignedUrlRequest {
 - 예약 결과: /reservations/{reservation_id}/result`,
     example: '/reservations/{reservation_id}/info',
   })
-  @IsValidFilePrefix()
   @IsString()
+  @IsValidFilePrefix()
   filePrefix: string;
   @ApiProperty({
     description: '파일의 확장자',
