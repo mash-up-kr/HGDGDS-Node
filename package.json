@@ -44,7 +44,6 @@
     "class-validator": "^0.14.1",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
-    "firebase-admin": "^13.4.0",
     "husky": "^9.1.7",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
