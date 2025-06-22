@@ -19,25 +19,5 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      platforms:
-        - linux/amd64
-        - linux/arm64
-    container_name: api
-    restart: always
-    environment:
-      DB_HOST: postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    ports:
-      - ${PORT}:${PORT}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
 volumes:
   db_persist:

@@ -1,9 +1,10 @@
 import { HttpStatus } from '@nestjs/common';
 import { BaseException } from './base.exception';
-import { AppMessage } from './error-message.enum';
+
+import { ERROR_CODES } from '../constants/error-codes';
 
 export class TestException extends BaseException {
   constructor() {
-    super(HttpStatus.I_AM_A_TEAPOT, AppMessage.TEST_EXCEPTION);
+    super(HttpStatus.I_AM_A_TEAPOT, ERROR_CODES.TEST_EXCEPTION);
   }
 }

@@ -2,8 +2,8 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ROLES_PUBLIC } from '@/common/decorator/public.decorator';
-import { AuthMessage } from '../exception/error-message.enum';
 import { UserRole } from '@/common/enums/user-role';
+import { ERROR_CODES } from '../constants/error-codes';
 
 describe('GlobalAuthGuard', () => {
   let guard: GlobalAuthGuard;
@@ -43,7 +43,7 @@ describe('GlobalAuthGuard', () => {
     } as unknown as ExecutionContext;
 
     expect(() => guard.canActivate(mockContext)).toThrow(
-      AuthMessage.UNAUTHORIZED,
+      ERROR_CODES.INVALID_TOKEN.message,
     );
   });
 
@@ -79,6 +79,8 @@ describe('GlobalAuthGuard', () => {
       }),
     } as unknown as ExecutionContext;
 
-    expect(() => guard.canActivate(mockContext)).toThrow(AuthMessage.FORBIDDEN);
+    expect(() => guard.canActivate(mockContext)).toThrow(
+      ERROR_CODES.FORBIDDEN.message,
+    );
   });
 });
