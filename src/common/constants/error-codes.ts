@@ -1,4 +1,10 @@
 export const ERROR_CODES = {
+  // request 관련 (400번대)
+  BAD_REQUEST: {
+    code: '400',
+    message: '잘못된 요청입니다.',
+  },
+
   // 인증 관련 (1000번대)
   USER_NOT_FOUND: {
     code: '1000',

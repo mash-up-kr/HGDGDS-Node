@@ -3,8 +3,9 @@ import {
   INestApplication,
   ValidationPipe,
 } from '@nestjs/common';
-import { CommonResponseInterceptor } from '@/common/interceptor';
 import { Reflector } from '@nestjs/core';
+import { CustomBadRequestException } from './common/exception/request-parsing.exception';
+import { CommonResponseInterceptor } from './common/interceptor';
 
 export function nestConfig(app: INestApplication) {
   const reflector = app.get<Reflector>(Reflector);
@@ -12,6 +13,14 @@ export function nestConfig(app: INestApplication) {
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      exceptionFactory: (errors) => {
+        const message = errors
+          .map((error) => {
+            return Object.values(error.constraints ?? {}).join(', ');
+          })
+          .join(', ');
+        return new CustomBadRequestException(message);
+      },
     }),
   );
 

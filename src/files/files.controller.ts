@@ -1,16 +1,18 @@
-import { CommonResponse } from '@/common/response/common.response';
-import { Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags, ApiBody } from '@nestjs/swagger';
 import { PresignedUrlResponse } from './response/presigned.url.response';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UploadPresignedUrlRequest } from './request/upload-presigned-url.request';
+import { FilesService } from './files.service';
 import { AccessPresignedUrlRequest } from './request/access-presigned-url.request';
 
 @ApiAuth()
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
+  constructor(private readonly fileService: FilesService) {}
+
   @Post('presigned-url/upload')
   @ApiOperation({
     summary: '업로드용 s3 presigned URL 생성',
@@ -19,13 +21,20 @@ export class FilesController {
   @ApiBody({
     type: UploadPresignedUrlRequest,
   })
-  getUploadPresignedUrl() {
-    return new CommonResponse(200, 'OK', {
-      url: 'https://example.com/presigned-url',
-    });
+  async getUploadPresignedUrl(
+    @Body() body: UploadPresignedUrlRequest,
+  ): Promise<PresignedUrlResponse> {
+    console.log(body);
+    console.log(body.fileExtension);
+    console.log(body.filePrefix);
+    const res = await this.fileService.getUploadPresignedUrl(
+      body.filePrefix,
+      body.fileExtension,
+    );
+    return res;
   }
 
-  @Post('presigned-url/access/:path')
+  @Post('presigned-url/access')
   @ApiOperation({
     summary: '조회용 s3 presigned URL 생성',
   })
@@ -33,9 +42,10 @@ export class FilesController {
   @ApiBody({
     type: AccessPresignedUrlRequest,
   })
-  getAccessPresignedUrl() {
-    return new CommonResponse(200, 'OK', {
-      url: 'https://example.com/presigned-url',
-    });
+  async getAccessPresignedUrl(
+    @Body() body: AccessPresignedUrlRequest,
+  ): Promise<string> {
+    const url = await this.fileService.getAccessPresignedUrl(body.filePath);
+    return url;
   }
 }

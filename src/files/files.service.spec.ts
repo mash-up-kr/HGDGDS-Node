@@ -36,12 +36,15 @@ describe('FilesService', () => {
 
   it('getUploadPresignedUrl: S3 presigned URL을 정상적으로 반환하는지', async () => {
     (getSignedUrl as jest.Mock).mockResolvedValue('mock-upload-url');
-    const url = await service.getUploadPresignedUrl(
-      'test/key.png',
-      'image/png',
+    const response = await service.getUploadPresignedUrl(
+      'reservations/1/info',
+      'jpeg',
     );
     expect(getSignedUrl).toHaveBeenCalled();
-    expect(url).toBe('mock-upload-url');
+    expect(response.presignedUrl).toBe('mock-upload-url');
+    expect(response.filePath).toMatch(
+      /reservations\/1\/info\/[a-z0-9-]+\.jpeg/,
+    );
   });
 
   it('getUploadPresignedUrl: S3 presigned URL 생성 중 에러가 발생하면 예외를 던지는지', async () => {

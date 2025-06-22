@@ -5,22 +5,27 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
+import { PresignedUrlResponse } from './response/presigned.url.response';
+import { isDev } from '@/common';
 
 @Injectable()
 export class FilesService {
   private s3: S3Client;
   private readonly bucket = process.env.AWS_S3_BUCKET!;
   private readonly region = process.env.AWS_REGION!;
-  private readonly accessKeyId = process.env.AWS_ACCESS_KEY_ID!;
-  private readonly secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY!;
+  private readonly s3AccessKey = process.env.AWS_S3_ACCESS_KEY!;
+  private readonly s3SecretKey = process.env.AWS_S3_SECRET_KEY!;
 
   constructor() {
     this.s3 = new S3Client({
       region: this.region,
-      credentials: {
-        accessKeyId: this.accessKeyId,
-        secretAccessKey: this.secretAccessKey,
-      },
+      ...(isDev && {
+        credentials: {
+          accessKeyId: this.s3AccessKey,
+          secretAccessKey: this.s3SecretKey,
+        },
+      }),
     });
   }
 
@@ -39,22 +44,25 @@ export class FilesService {
   }
 
   async getUploadPresignedUrl(
-    key: string,
-    contentType: string,
-  ): Promise<string> {
+    filePrefix: string,
+    fileExtension: string,
+  ): Promise<PresignedUrlResponse> {
+    const fileId = uuidv4();
+    const filePath = filePrefix + '/' + fileId + '.' + fileExtension;
     const command = new PutObjectCommand({
       Bucket: this.bucket,
-      Key: key,
-      ContentType: contentType,
+      Key: filePath,
     });
-    return await this.generatePresignedUrl(command);
+    const presignedUrl = await this.generatePresignedUrl(command);
+    return new PresignedUrlResponse(presignedUrl, filePath);
   }
 
-  async getAccessPresignedUrl(key: string): Promise<string> {
+  async getAccessPresignedUrl(filePath: string): Promise<string> {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
-      Key: key,
+      Key: filePath,
     });
-    return await this.generatePresignedUrl(command);
+    const presignedUrl = await this.generatePresignedUrl(command);
+    return presignedUrl;
   }
 }
