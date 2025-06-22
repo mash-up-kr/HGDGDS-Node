@@ -9,9 +9,13 @@ import firebaseConfig from '@/firebase/firebase.config';
 @Injectable()
 export class FirebaseService {
   constructor() {
-    admin.initializeApp({
-      credential: admin.credential.cert(firebaseConfig as admin.ServiceAccount),
-    });
+    if (admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert(
+          firebaseConfig() as admin.ServiceAccount,
+        ),
+      });
+    }
   }
 
   async fcm(token: string, title: string, message: string) {
@@ -23,16 +27,12 @@ export class FirebaseService {
       },
     };
 
-    const result = await admin
-      .messaging()
-      .send(payload)
-      .then((response) => {
-        return { sent_message: response };
-      })
-      .catch((error) => {
-        return { error: error.code };
-      });
-    return result;
+    try {
+      const response = await admin.messaging().send(payload);
+      return { sent_message: response };
+    } catch (error) {
+      return { error: error.code };
+    }
   }
 
   async multiFcm(
