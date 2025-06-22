@@ -43,7 +43,7 @@ sequenceDiagram
 
     %% 업로드 플로우
     Client->>BE: POST /file/presigned-url/upload <br/> body: 파일 경로 ex) /reservation/{reservationId}/info
-    BE->>S3: presigned URL 생성
+    BE->>S3: presigned URL 생성 요청
     S3-->>BE: presigned URL 반환
     BE-->>Client: presigned URL, filePath 반환
 
@@ -70,11 +70,13 @@ sequenceDiagram
     participant BE as 백엔드 서버
     participant S3 as AWS S3
 
-    Client->>BE: POST /file/presigned-url/access (body: filePath)
-    BE->>S3: (내부적으로 presigned URL 생성)
+    Client->>BE: GET /users
+    BE-->>Client: profile_image: /users/profile/profiile_01.png
+    Client->>BE: POST /file/presigned-url/access <br/> (filePath: /users/profile/profiile_01.png)
+    BE->>S3: presigned URL 생성 요청
     S3-->>BE: presigned URL 반환
     BE-->>Client: presigned URL 반환
 
-    Client->>S3: GET presigned URL로 파일 다운로드
+    Client->>S3: GET presigned URL로 파일 조회
     S3-->>Client: 파일 데이터 반환
 ```
