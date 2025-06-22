@@ -1,11 +1,12 @@
 import { ROLES_PUBLIC } from '@/common/decorator/public.decorator';
 import { ROLES_KEY } from '@/common/decorator/roles.decorator';
-import {
-  ForbiddenException,
-  UnauthorizedException,
-} from '@/common/exception/auth.exception';
+import { InvalidTokenException } from '@/common/exception/auth.exception';
 import { User } from '@/users/entities/user.entity';
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { JWT_STRATEGY } from './constant';
@@ -37,7 +38,7 @@ export class GlobalAuthGuard extends AuthGuard(JWT_STRATEGY) {
     const user = request.user as User;
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new InvalidTokenException();
     }
 
     // @Roles() 검사
