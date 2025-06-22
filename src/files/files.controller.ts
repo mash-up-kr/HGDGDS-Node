@@ -24,9 +24,6 @@ export class FilesController {
   async getUploadPresignedUrl(
     @Body() body: UploadPresignedUrlRequest,
   ): Promise<PresignedUrlResponse> {
-    console.log(body);
-    console.log(body.fileExtension);
-    console.log(body.filePrefix);
     const res = await this.fileService.getUploadPresignedUrl(
       body.filePrefix,
       body.fileExtension,
@@ -38,7 +35,7 @@ export class FilesController {
   @ApiOperation({
     summary: '조회용 s3 presigned URL 생성',
   })
-  @CommonResponseDecorator(PresignedUrlResponse)
+  @CommonResponseDecorator()
   @ApiBody({
     type: AccessPresignedUrlRequest,
   })
