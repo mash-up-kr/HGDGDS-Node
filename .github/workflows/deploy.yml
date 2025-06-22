@@ -9,6 +9,7 @@ jobs:
   publish_and_deploy:
     runs-on: ubuntu-latest
 
+
     env:
       AWS_REGION: ap-northeast-2
       AWS_SG_NAME: ${{ secrets.AWS_SG_NAME }}
