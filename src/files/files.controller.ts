@@ -17,7 +17,7 @@ export class FilesController {
 
   @Post('presigned-url/upload')
   @ApiOperation({
-    summary: '업로드용 s3 presigned URL 생성',
+    summary: '업로드용 s3 presigned URL 생성 ✅',
   })
   @CommonResponseDecorator(PresignedUrlResponse)
   @ApiBody({
