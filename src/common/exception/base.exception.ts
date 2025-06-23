@@ -13,10 +13,8 @@ export class BaseException extends HttpException {
   ) {
     super(
       {
-        statusCode: status,
-        errorCode: errorCodeObject.code,
+        code: errorCodeObject.code,
         message: customMessage || errorCodeObject.message,
-        timestamp: new Date().toISOString(),
       },
       status,
     );

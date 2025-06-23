@@ -9,7 +9,7 @@ if (appMode === 'dev') {
   config({ path: join(cwd(), 'dev.env') });
 }
 
-const isDev = appMode === 'dev';
+export const isDev = appMode === 'dev';
 
 export const typeormConfig: DataSourceOptions = {
   type: 'postgres',

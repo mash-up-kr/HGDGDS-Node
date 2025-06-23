@@ -29,3 +29,9 @@ export class InvalidTokenException extends BaseException {
     super(HttpStatus.UNAUTHORIZED, ERROR_CODES.INVALID_TOKEN);
   }
 }
+
+export class ForbiddenException extends BaseException {
+  constructor() {
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.FORBIDDEN);
+  }
+}
