@@ -24,8 +24,9 @@ export class ReservationsService {
       const userReservationRepo = manager.getRepository(UserReservation);
 
       // 1. Reservation 저장
-      const reservation = reservationRepo.create(reservationData);
-      const savedReservation = await reservationRepo.save(reservation);
+      const reservation: Reservation = reservationRepo.create(reservationData);
+      const savedReservation: Reservation =
+        await reservationRepo.save(reservation);
 
       // 2. Image 저장
       const images =

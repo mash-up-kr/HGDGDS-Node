@@ -6,17 +6,42 @@ import { DataSource } from 'typeorm';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { User } from '@/users/entities/user.entity';
 import { ReservationCategory } from '@/common/enums/reservation-category';
+import { Image } from '@/images/entities/images.entity';
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
   let dataSource: DataSource;
 
   beforeEach(async () => {
+    const mockReservation = {
+      id: 123,
+      title: 'Test',
+      category: '맛집',
+      reservationDatetime: new Date(),
+      host: { id: 1 },
+    } as Reservation;
+
     const mockManager = {
-      getRepository: jest.fn().mockImplementation((/* _entity */) => ({
-        create: jest.fn(),
-        save: jest.fn(),
-      })),
+      getRepository: jest.fn().mockImplementation((entity) => {
+        if (entity === Reservation) {
+          return {
+            create: jest.fn().mockReturnValue(mockReservation),
+            save: jest.fn().mockResolvedValue(mockReservation),
+          };
+        }
+        if (entity === Image) {
+          return {
+            create: jest
+              .fn()
+              .mockImplementation((img: Partial<Image>): Partial<Image> => img),
+            save: jest.fn().mockResolvedValue(undefined),
+          };
+        }
+        return {
+          create: jest.fn(),
+          save: jest.fn(),
+        };
+      }),
     };
     const mockDataSource = {
       transaction: jest.fn(
@@ -45,7 +70,7 @@ describe('ReservationsService', () => {
       title: 'Test',
       category: '맛집' as ReservationCategory,
       reservationDatetime: new Date(),
-      host: { id: 1 } as User,
+      host: { id: 1 } as User, // Mock User entity
       images: ['img1.png'],
     };
 
