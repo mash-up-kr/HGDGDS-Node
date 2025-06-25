@@ -1,4 +1,5 @@
 import { ReservationCategory } from '@/common/enums/reservation-category';
+import { User } from '@/users/entities/user.entity';
 
 export class CreateReservationDto {
   title: string;
@@ -6,7 +7,8 @@ export class CreateReservationDto {
   reservationDatetime: Date;
   description?: string;
   linkUrl?: string;
-  hostId: number;
+  // hostId: number;
+  host: User;
   similarGroupId?: number;
   images?: string[];
 
@@ -14,7 +16,8 @@ export class CreateReservationDto {
     title: string,
     category: ReservationCategory,
     reservationDatetime: Date,
-    hostId: number,
+    // hostId: number,
+    host: User,
     description?: string,
     linkUrl?: string,
     images?: string[],
@@ -25,7 +28,8 @@ export class CreateReservationDto {
     this.reservationDatetime = reservationDatetime;
     this.description = description;
     this.linkUrl = linkUrl;
-    this.hostId = hostId;
+    // this.hostId = hostId;
+    this.host = host;
     this.similarGroupId = similarGroupId;
     this.images = images;
   }

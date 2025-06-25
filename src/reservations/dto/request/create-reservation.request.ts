@@ -34,7 +34,7 @@ export class CreateReservationRequest {
   category: ReservationCategory;
 
   @ApiProperty({
-    description: '예약 일시 (ISO8601 형식)',
+    description: '예약 일시 KST(ISO8601 형식)',
     example: '2025-01-04T09:00:00+09:00',
   })
   @IsDateString()
@@ -43,9 +43,7 @@ export class CreateReservationRequest {
   @ApiProperty({
     description: '외부 링크 URL',
     example: 'https://naver.me/xyz',
-    required: false,
   })
-  @IsOptional()
   @IsUrl()
   linkUrl?: string;
 
@@ -61,7 +59,8 @@ export class CreateReservationRequest {
   description?: string;
 
   @ApiProperty({
-    description: 'S3 이미지 path 목록 (최대 3개)',
+    description:
+      'S3 이미지 path 목록 (최대 3개), /files/presigned-url/upload API response의 filePath를 사용',
     example: ['path/image1.jpg', 'path/image1.jpg'],
     required: false,
     maxItems: 3,

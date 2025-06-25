@@ -2,6 +2,8 @@ import { BasePaginationQueryDto } from '@/common/dto/request';
 import { PaginationMetadata } from '@/common/dto/response';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { Reservation } from '@/reservations/entities/reservation.entity';
+import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
@@ -16,71 +18,7 @@ import {
   MaxLength,
 } from 'class-validator';
 
-/**
- * 예약생성
- */
-
-export class CreateReservationRequestDto {
-  @ApiProperty({
-    description: '이벤트 제목',
-    example: '흑백 돼지',
-    maxLength: 100,
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  title: string;
-
-  @ApiProperty({
-    description: '예약 카테고리',
-    example: '맛집',
-    enum: ['맛집', '액티비티', '공연', '운동경기', '기타'],
-  })
-  @IsString()
-  @IsIn(['맛집', '액티비티', '공연', '운동경기', '기타'])
-  category: string;
-
-  @ApiProperty({
-    description: '예약 일시 (ISO8601 형식)',
-    example: '2025-01-04T09:00:00+09:00',
-  })
-  @IsDateString()
-  reservationDatetime: string;
-
-  @ApiProperty({
-    description: '외부 링크 URL',
-    example: 'https://naver.me/xyz',
-    required: false,
-  })
-  @IsOptional()
-  @IsUrl()
-  linkUrl?: string;
-
-  @ApiProperty({
-    description: '설명 내용',
-    example: '흑백요리사 음식점 부시기',
-    required: false,
-    maxLength: 1000,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(1000)
-  description?: string;
-
-  @ApiProperty({
-    description: 'S3 이미지 URL 목록 (최대 3개)',
-    example: ['path/image1.jpg', 'path/image1.jpg'],
-    required: false,
-    maxItems: 3,
-  })
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(3)
-  @IsUrl({}, { each: true })
-  images?: string[];
-}
-
-export class CreateReservationDataDto {
+export class CreateReservationResponse {
   @ApiProperty({
     description: '생성된 예약 ID',
     example: 42,
@@ -120,10 +58,11 @@ export class CreateReservationDataDto {
   description: string | null;
 
   @ApiProperty({
-    description: 'S3 이미지 URL 목록',
-    example: ['path/image1.jpg', 'path/image1.jpg'],
+    description:
+      '이미지 조회용 presigned URL 목록, url을 GET으로 호출하면 파일조회 가능',
+    example: ['http://어쩌구', 'http://저쩌구'],
   })
-  images: string[];
+  imageUrls: string[];
 
   @ApiProperty({
     description: '호스트 사용자 ID',
@@ -136,26 +75,18 @@ export class CreateReservationDataDto {
     example: '2025-06-13T16:00:00Z',
   })
   createdAt: string;
-}
 
-export class CreateReservationResponseDto {
-  @ApiProperty({
-    description: '응답 코드',
-    example: '200',
-  })
-  code: string;
-
-  @ApiProperty({
-    description: '응답 메시지',
-    example: 'OK',
-  })
-  message: string;
-
-  @ApiProperty({
-    description: '생성된 예약 정보',
-    type: CreateReservationDataDto,
-  })
-  data: CreateReservationDataDto;
+  constructor(reservation: Reservation, host: User, imageUrls?: string[]) {
+    this.reservationId = reservation.id;
+    this.title = reservation.title;
+    this.category = reservation.category;
+    this.reservationDatetime = reservation.reservationDatetime.toISOString();
+    this.linkUrl = reservation.linkUrl;
+    this.description = reservation.description;
+    this.imageUrls = imageUrls ?? [];
+    this.hostId = host.id;
+    this.createdAt = reservation.createdAt.toISOString();
+  }
 }
 
 /**
