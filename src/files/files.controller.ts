@@ -1,45 +1,77 @@
-import { CommonResponse } from '@/common/response/common.response';
-import { Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiParam } from '@nestjs/swagger';
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOperation, ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { PresignedUrlResponse } from './response/presigned.url.response';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
+import { UploadPresignedUrlRequest } from './request/upload-presigned-url.request';
+import { FilesService } from './files.service';
+import { AccessPresignedUrlRequest } from './request/access-presigned-url.request';
+import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
+import { ERROR_CODES } from '@/common/constants/error-codes';
 
 @ApiAuth()
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
-  @Post('presigned-url/upload/:path')
+  constructor(private readonly fileService: FilesService) {}
+
+  @Post('presigned-url/upload')
   @ApiOperation({
-    summary: '업로드용 s3 presigned URL 생성',
+    summary: '업로드용 s3 presigned URL 생성 ✅',
   })
   @CommonResponseDecorator(PresignedUrlResponse)
-  @ApiParam({
-    name: 'path',
-    description: `파일 저장 경로 (두 가지 종류만 가능)\n
-        - 예약 상세 이미지 : /reservations/{reservation_id}/info
-        - 예약 결과 이미지 : /reservations/{reservation_id}/result`,
-    example: '/reservations/{reservation_id}/info',
+  @ApiBody({
+    type: UploadPresignedUrlRequest,
   })
-  getUploadPresignedUrl() {
-    return new CommonResponse(200, 'OK', {
-      url: 'https://example.com/presigned-url',
-    });
+  @ApiResponse({
+    status: 400,
+    description: 'filePrefix validation 실패',
+    type: ErrorResponseDto,
+    example: {
+      code: '400',
+      message: '유효한 filePrefix가 아닙니다.',
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'filePrefix validation 실패',
+    type: ErrorResponseDto,
+    example: {
+      code: ERROR_CODES.BAD_REQUEST.code,
+      message: '유효한 filePrefix가 아닙니다.',
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: '내부 서버 에러',
+    type: ErrorResponseDto,
+    example: {
+      code: ERROR_CODES.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODES.INTERNAL_SERVER_ERROR.message,
+    },
+  })
+  async getUploadPresignedUrl(
+    @Body() body: UploadPresignedUrlRequest,
+  ): Promise<PresignedUrlResponse> {
+    const res = await this.fileService.getUploadPresignedUrl(
+      body.filePrefix,
+      body.fileExtension,
+    );
+    return res;
   }
 
-  @Post('presigned-url/access/:path')
+  @Post('presigned-url/access')
   @ApiOperation({
     summary: '조회용 s3 presigned URL 생성',
   })
-  @CommonResponseDecorator(PresignedUrlResponse)
-  @ApiParam({
-    name: 'path',
-    description: '파일 path',
-    example: '/reservations/{reservation_id}/info/uuid.png',
+  @CommonResponseDecorator()
+  @ApiBody({
+    type: AccessPresignedUrlRequest,
   })
-  getAccessPresignedUrl() {
-    return new CommonResponse(200, 'OK', {
-      url: 'https://example.com/presigned-url',
-    });
+  async getAccessPresignedUrl(
+    @Body() body: AccessPresignedUrlRequest,
+  ): Promise<string> {
+    const url = await this.fileService.getAccessPresignedUrl(body.filePath);
+    return url;
   }
 }

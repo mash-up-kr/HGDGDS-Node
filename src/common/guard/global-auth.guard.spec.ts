@@ -2,8 +2,8 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ROLES_PUBLIC } from '@/common/decorator/public.decorator';
-import { AuthMessage } from '../exception/error-message.enum';
 import { UserRole } from '@/common/enums/user-role';
+import { ERROR_CODES } from '../constants/error-codes';
 
 describe('GlobalAuthGuard', () => {
   let guard: GlobalAuthGuard;
@@ -30,9 +30,7 @@ describe('GlobalAuthGuard', () => {
   });
 
   it('should deny access if user is not authenticated', () => {
-    jest
-      .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue([UserRole.GUEST]);
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.USER]);
 
     const mockContext = {
       getHandler: jest.fn(),
@@ -43,14 +41,12 @@ describe('GlobalAuthGuard', () => {
     } as unknown as ExecutionContext;
 
     expect(() => guard.canActivate(mockContext)).toThrow(
-      AuthMessage.UNAUTHORIZED,
+      ERROR_CODES.INVALID_TOKEN.message,
     );
   });
 
   it('should allow access if user has the required role', () => {
-    jest
-      .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue([UserRole.GUEST]);
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.USER]);
 
     const mockContext = {
       getHandler: jest.fn(),
@@ -58,7 +54,7 @@ describe('GlobalAuthGuard', () => {
       switchToHttp: jest.fn().mockReturnValue({
         getRequest: jest
           .fn()
-          .mockReturnValue({ user: { role: UserRole.GUEST } }),
+          .mockReturnValue({ user: { role: UserRole.USER } }),
       }),
     } as unknown as ExecutionContext;
 
@@ -67,7 +63,9 @@ describe('GlobalAuthGuard', () => {
   });
 
   it('should deny access if user does not have the required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.HOST]);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockReturnValue([UserRole.ADMIN]);
 
     const mockContext = {
       getHandler: jest.fn(),
@@ -75,10 +73,12 @@ describe('GlobalAuthGuard', () => {
       switchToHttp: jest.fn().mockReturnValue({
         getRequest: jest
           .fn()
-          .mockReturnValue({ user: { role: UserRole.GUEST } }),
+          .mockReturnValue({ user: { role: UserRole.USER } }),
       }),
     } as unknown as ExecutionContext;
 
-    expect(() => guard.canActivate(mockContext)).toThrow(AuthMessage.FORBIDDEN);
+    expect(() => guard.canActivate(mockContext)).toThrow(
+      ERROR_CODES.FORBIDDEN.message,
+    );
   });
 });

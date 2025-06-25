@@ -9,7 +9,7 @@ if (appMode === 'dev') {
   config({ path: join(cwd(), 'dev.env') });
 }
 
-const isDev = appMode === 'dev';
+export const isDev = appMode === 'dev';
 
 export const typeormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -18,9 +18,11 @@ export const typeormConfig: DataSourceOptions = {
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: isDev
+    ? false
+    : {
+        rejectUnauthorized: false,
+      },
   synchronize: isDev,
   logging: isDev,
   entities: [join(cwd(), 'dist', '**', `*.entity.js`)],

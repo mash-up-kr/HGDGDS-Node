@@ -5,15 +5,16 @@ export class PresignedUrlResponse {
     description: 'Presigned URL',
     example: 'https://example.com/presigned-url',
   })
-  url: string;
+  presignedUrl: string;
 
   @ApiProperty({
     description: '파일 저장 경로',
     example: '/reservations/{reservation_id}/info/uuid.png',
   })
-  path: string;
+  filePath: string;
 
-  constructor(url: string) {
-    this.url = url;
+  constructor(url: string, filePath: string) {
+    this.presignedUrl = url;
+    this.filePath = filePath;
   }
 }
