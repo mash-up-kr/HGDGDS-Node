@@ -11,6 +11,9 @@ import {
 } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.dto';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
+import { UserNotFoundException } from '@/common/exception/user.exception';
 
 @Injectable()
 export class UsersRepository extends Repository<User> {
@@ -18,6 +21,44 @@ export class UsersRepository extends Repository<User> {
 
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
+  }
+
+  /**
+   * 사용자 설정 업데이트 (요청으로 온 필드만 업데이트.)
+   */
+  async updateUserSettings(
+    userId: number,
+    updateData: UpdateUserSettingsRequestDto,
+  ): Promise<User> {
+    const updateFields: Partial<User> = {
+      updatedAt: new Date(),
+    };
+
+    if (updateData.nickname !== undefined) {
+      updateFields.nickname = updateData.nickname;
+    }
+
+    if (updateData.profileImageCode !== undefined) {
+      updateFields.profileImageCode =
+        updateData.profileImageCode as ProfileImageCode;
+    }
+
+    if (updateData.reservationAlarmSetting !== undefined) {
+      updateFields.reservationAlarmSetting = updateData.reservationAlarmSetting;
+    }
+
+    if (updateData.kokAlarmSetting !== undefined) {
+      updateFields.kokAlarmSetting = updateData.kokAlarmSetting;
+    }
+
+    await this.update(userId, updateFields);
+
+    const updatedUser = await this.findUserById(userId);
+    if (!updatedUser) {
+      throw new UserNotFoundException();
+    }
+
+    return updatedUser;
   }
 
   public async encryptPassword(password: string): Promise<string> {
@@ -44,7 +85,7 @@ export class UsersRepository extends Repository<User> {
     const user = this.create({
       deviceId: userData.deviceId,
       nickname: userData.nickname,
-      profileImageCode: userData.profileImageCode, // 변경
+      profileImageCode: userData.profileImageCode,
     });
 
     return await this.save(user);
