@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
 import { User } from '@/users/entities/user.entity';
 import { SimilarGroup } from '@/similar-groups/entities/similar-groups.entity';
@@ -6,6 +6,9 @@ import { ReservationCategory } from '@/common/enums/reservation-category';
 
 @Entity({ name: 'reservations' })
 export class Reservation extends BaseEntity {
+  @PrimaryColumn({ type: 'bigint' })
+  id: number;
+
   @Column({ type: 'varchar' })
   title: string;
 
@@ -28,4 +31,6 @@ export class Reservation extends BaseEntity {
   @ManyToOne(() => SimilarGroup)
   @JoinColumn({ name: 'similar_group_id' })
   similarGroup: SimilarGroup;
+
+  // 폴리모픽 관계인 images는 필드로 둘 수 없음
 }

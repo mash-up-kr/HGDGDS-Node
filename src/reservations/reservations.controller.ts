@@ -21,8 +21,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import {
-  CreateReservationRequestDto,
-  CreateReservationResponseDto,
+  CreateReservationResponse,
   GetReservationDetailResponseDto,
   GetReservationMembersResponseDto,
   GetReservationsQueryDto,
@@ -36,77 +35,81 @@ import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { PaginationMetadata } from '@/common/dto/response';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
-import { UpdateUserStatusRequest } from './request/update.user.status.request';
+import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
-import { UpdateUserMessageRequest } from './request/update.user.message.request';
-import { CreateReservationResultDto } from './request/create.reservation.result.dto';
-import { ReservationResultDto } from './response/result.dto';
-import { RivalResponse } from './response/rival.response';
+import { UpdateUserMessageRequest } from './dto/request/update.user.message.request';
+import { CreateReservationResultDto } from './dto/request/create.reservation.result.dto';
+import { ReservationResultDto } from './dto/response/result.dto';
+import { RivalResponse } from './dto/response/rival.response';
 import { CommonResponse } from '@/common/response/common.response';
+import { CreateReservationRequest } from './dto/request/create-reservation.request';
+import { ReservationsService } from './reservations.service';
+import { CreateReservationDto } from './dto/create-reservation.dto';
+import { Roles } from '@/common/decorator/roles.decorator';
+import { UserRole } from '@/common/enums/user-role';
+import { CurrentUser } from '@/common/decorator/current-user.decorator';
+import { User } from '@/users/entities/user.entity';
+import { FilesService } from '@/files/files.service';
+import { Reservation } from './entities/reservation.entity';
 
 @ApiAuth()
 @ApiTags('예약')
+@Roles(UserRole.USER)
 @UseGuards(GlobalAuthGuard)
 @Controller('reservations')
 export class ReservationsController {
+  constructor(
+    private readonly reservationsService: ReservationsService,
+    private readonly filesService: FilesService,
+  ) {}
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: '예약 생성',
     description:
       '새로운 예약을 생성합니다. 이미지는 최대 3개까지 업로드 가능합니다.',
   })
   @ApiResponse({
-    status: 201,
-    description: '예약 생성 성공',
-    type: CreateReservationResponseDto,
-  })
-  @ApiResponse({
     status: 400,
     description: '잘못된 요청 (유효하지 않은 카테고리, 날짜 형식 오류 등)',
     type: ErrorResponseDto,
     example: {
-      code: '2002',
-      message: '유효하지 않은 예약 시간입니다.',
+      code: '400',
+      message: '유효하지 않은 예약 시간입니다 .',
     },
   })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 422,
-    description: '유효성 검사 실패',
-    type: ErrorResponseDto,
-    example: {
-      code: '1002',
-      message: '제목은 필수입니다.',
-    },
-  })
-  createReservation(
-    @Body() createDto: CreateReservationRequestDto,
-  ): CreateReservationResponseDto {
-    return {
-      code: '201',
-      message: 'OK',
-      data: {
-        reservationId: 42,
-        title: createDto.title,
-        category: createDto.category,
-        reservationDatetime: createDto.reservationDatetime,
-        linkUrl: createDto.linkUrl ?? null,
-        description: createDto.description ?? null,
-        images: createDto.images ?? [],
-        hostId: 1,
-        createdAt: new Date().toISOString(),
-      },
-    };
+  @CommonResponseDecorator(CreateReservationResponse)
+  async createReservation(
+    @CurrentUser() user: User,
+    @Body() body: CreateReservationRequest,
+  ): Promise<CreateReservationResponse> {
+    const createDto = new CreateReservationDto(
+      body.title,
+      body.category,
+      new Date(body.reservationDatetime),
+      user,
+      body.description,
+      body.linkUrl,
+      body.images,
+      undefined, // TODO : similarGroupId는 현재 사용하지 않음
+    );
+    const reservation: Reservation =
+      await this.reservationsService.createReservation(createDto);
+
+    const imageUrls: string[] = [];
+    if (body.images && body.images.length > 0) {
+      for (const image of body.images) {
+        try {
+          const url = await this.filesService.getAccessPresignedUrl(image);
+          imageUrls.push(url);
+        } catch (error) {
+          console.error(image + ' URL 생성 실패:', error);
+        }
+      }
+    }
+
+    return new CreateReservationResponse(reservation, user, imageUrls);
   }
 
   @Post(':reservationId/join')
