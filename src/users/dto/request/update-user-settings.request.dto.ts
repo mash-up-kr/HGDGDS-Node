@@ -1,6 +1,12 @@
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsOptional, Length } from 'class-validator';
+import {
+  IsString,
+  IsBoolean,
+  IsOptional,
+  Length,
+  IsEnum,
+} from 'class-validator';
 
 export class UpdateUserSettingsRequestDto {
   @ApiProperty({
@@ -19,9 +25,9 @@ export class UpdateUserSettingsRequestDto {
     example: ProfileImageCode.IMG_001,
     enum: Object.values(ProfileImageCode),
   })
-  @IsString()
   @IsOptional()
-  profileImageCode?: string;
+  @IsEnum(ProfileImageCode)
+  profileImageCode?: ProfileImageCode;
 
   @ApiProperty({
     description: '예약 알림 수신 설정',

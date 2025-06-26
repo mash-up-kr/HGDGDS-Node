@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
-import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.dto';
+import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
 import { UpdateUserSettingsResponseDto } from './dto/response/update-user-settings.response';
 import { UserNotFoundException } from '@/common/exception/user.exception';
 
