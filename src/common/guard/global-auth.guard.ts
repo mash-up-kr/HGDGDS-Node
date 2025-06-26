@@ -16,7 +16,7 @@ export class GlobalAuthGuard extends AuthGuard(JWT_STRATEGY) {
     super();
   }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
@@ -30,6 +30,8 @@ export class GlobalAuthGuard extends AuthGuard(JWT_STRATEGY) {
     if (requiredRoles?.length === 1 && requiredRoles[0] === ROLES_PUBLIC) {
       return true;
     }
+
+    await super.canActivate(context);
 
     const request = context
       .switchToHttp()
