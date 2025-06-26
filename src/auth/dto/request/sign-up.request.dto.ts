@@ -29,11 +29,7 @@ export class SignUpRequestDto {
     enum: Object.values(ProfileImageCode),
   })
   @IsEnum(ProfileImageCode, {
-<<<<<<< HEAD
     message: 'profileImageCode는 유효한 프로필 이미지여야 합니다.',
-=======
-    message: 'profileImageName은 유효한 프로필 이미지여야 합니다.',
->>>>>>> 6e42fc6 (chore: auth 관련 DTO를 request/response 폴더로 이동)
   })
   profileImageCode: ProfileImageCode;
 }
