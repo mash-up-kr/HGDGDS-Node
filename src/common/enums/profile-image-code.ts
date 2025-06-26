@@ -1,4 +1,4 @@
-export enum ProfileImageName {
+export enum ProfileImageCode {
   IMG_001 = 'IMG_001',
   IMG_002 = 'IMG_002',
   IMG_003 = 'IMG_003',
