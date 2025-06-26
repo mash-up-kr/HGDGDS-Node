@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.dto';
+import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { UserNotFoundException } from '@/common/exception/user.exception';
 

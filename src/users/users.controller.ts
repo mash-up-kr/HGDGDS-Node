@@ -23,7 +23,7 @@ import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
-import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.dto';
+import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
 import { UpdateUserSettingsResponseDto } from './dto/response/update-user-settings.response';
 import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
