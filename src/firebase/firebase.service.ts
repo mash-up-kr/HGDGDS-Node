@@ -12,41 +12,55 @@ type FirebaseConfigType = () => admin.ServiceAccount;
 export class FirebaseService {
   constructor() {
     if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(
-          (firebaseConfig as FirebaseConfigType)(),
-        ),
-      });
+      try {
+        admin.initializeApp({
+          credential: admin.credential.cert(
+            (firebaseConfig as FirebaseConfigType)(),
+          ),
+        });
+      } catch (error) {
+        throw new Error('Firebase initialization failed');
+      }
     }
   }
 
-  async fcm(token: string, title: string, message: string) {
+  async sendNotification(
+    token: string,
+    title: string,
+    message: string,
+    data?: Record<string, string>,
+  ) {
     const payload: Message = {
       token: token,
       notification: {
         title: title,
         body: message,
       },
+      ...(data && { data }),
     };
 
     try {
       const response = await admin.messaging().send(payload);
       return { sent_message: response };
-    } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
+    } catch (error: any) {
+      if (error && typeof error === 'object' && error.code && error.message) {
         return {
-          error: (error as { code: string }).code,
-          message: (error as { message: string }).message,
+          error: error.code,
+          message: error.message,
         };
       }
-      return { error: 'UnknownError', message: (error as Error).message };
+      return {
+        error: 'UNKNOWN_ERROR',
+        message: error?.message || 'An unknown error occurred.',
+      };
     }
   }
 
-  async multiFcm(
+  async sendMulticastNotification(
     tokens: string[],
     title: string,
     message: string,
+    data?: Record<string, string>,
   ): Promise<any> {
     const payload: MulticastMessage = {
       tokens,
@@ -54,6 +68,7 @@ export class FirebaseService {
         title: title,
         body: message,
       },
+      ...(data && { data }),
     };
     if (tokens.length === 0) {
       return { error: 'Tokens are empty' };
@@ -62,14 +77,17 @@ export class FirebaseService {
     try {
       const result = await admin.messaging().sendEachForMulticast(payload);
       return result;
-    } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
+    } catch (error: any) {
+      if (error && typeof error === 'object' && error.code && error.message) {
         return {
-          error: (error as { code: string }).code,
-          message: (error as { message: string }).message,
+          error: error.code,
+          message: error.message,
         };
       }
-      return { error: 'UnknownError', message: (error as Error).message };
+      return {
+        error: 'UNKNOWN_ERROR',
+        message: error?.message || 'An unknown error occurred.',
+      };
     }
   }
 }
