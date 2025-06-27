@@ -1,10 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
   Message,
   MulticastMessage,
 } from 'firebase-admin/lib/messaging/messaging-api';
 import firebaseConfig from '@/firebase/firebase.config';
+import {
+  SendNotificationResponse,
+  FirebaseOperationError,
+  MulticastSendResult,
+} from '@/firebase/dto/firebase-notification.dto';
+import { BatchResponse } from 'firebase-admin/lib/messaging';
 
 type FirebaseConfigType = () => admin.ServiceAccount;
 
@@ -19,7 +25,9 @@ export class FirebaseService {
           ),
         });
       } catch (error) {
-        throw new Error('Firebase initialization failed');
+        throw new InternalServerErrorException(
+          'Firebase initialization failed',
+        );
       }
     }
   }
@@ -29,7 +37,11 @@ export class FirebaseService {
     title: string,
     message: string,
     data?: Record<string, string>,
-  ) {
+  ): Promise<SendNotificationResponse | FirebaseOperationError> {
+    if (!token || typeof token !== 'string') {
+      return { error: 'BAD_REQUEST', message: 'Invalid FCM token provided.' };
+    }
+
     const payload: Message = {
       token: token,
       notification: {
@@ -43,15 +55,9 @@ export class FirebaseService {
       const response = await admin.messaging().send(payload);
       return { sent_message: response };
     } catch (error: any) {
-      if (error && typeof error === 'object' && error.code && error.message) {
-        return {
-          error: error.code,
-          message: error.message,
-        };
-      }
       return {
-        error: 'UNKNOWN_ERROR',
-        message: error?.message || 'An unknown error occurred.',
+        error: error.code || 'UNKNOWN_ERROR',
+        message: error.message || 'An unknown error occurred.',
       };
     }
   }
@@ -61,7 +67,7 @@ export class FirebaseService {
     title: string,
     message: string,
     data?: Record<string, string>,
-  ): Promise<any> {
+  ): Promise<MulticastSendResult | FirebaseOperationError | BatchResponse> {
     const payload: MulticastMessage = {
       tokens,
       notification: {
@@ -71,22 +77,19 @@ export class FirebaseService {
       ...(data && { data }),
     };
     if (tokens.length === 0) {
-      return { error: 'Tokens are empty' };
+      return {
+        error: 'EMPTY_TOKENS',
+        message: 'Tokens are empty',
+      };
     }
 
     try {
       const result = await admin.messaging().sendEachForMulticast(payload);
       return result;
     } catch (error: any) {
-      if (error && typeof error === 'object' && error.code && error.message) {
-        return {
-          error: error.code,
-          message: error.message,
-        };
-      }
       return {
-        error: 'UNKNOWN_ERROR',
-        message: error?.message || 'An unknown error occurred.',
+        error: error.code || 'UNKNOWN_ERROR',
+        message: error.message || 'An unknown error occurred.',
       };
     }
   }

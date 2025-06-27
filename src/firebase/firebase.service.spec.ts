@@ -49,7 +49,11 @@ describe('FirebaseService', () => {
       const mockSuccessResponse = { messageId: 'mock-message-id-123' };
       mockSend.mockResolvedValue(mockSuccessResponse);
 
-      const result = await service.fcm(testToken, testTitle, testMessage);
+      const result = await service.sendNotification(
+        testToken,
+        testTitle,
+        testMessage,
+      );
 
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith({
@@ -70,7 +74,11 @@ describe('FirebaseService', () => {
       };
       mockSend.mockRejectedValue(mockError);
 
-      const result = await service.fcm('invalid-token', testTitle, testMessage);
+      const result = await service.sendNotification(
+        'invalid-token',
+        testTitle,
+        testMessage,
+      );
 
       expect(result).toEqual({
         error: mockError.code,
@@ -92,7 +100,11 @@ describe('FirebaseService', () => {
       };
       mockSendEachForMulticast.mockResolvedValue(mockSuccessResponse);
 
-      const result = await service.multiFcm(testTokens, testTitle, testMessage);
+      const result = await service.sendMulticastNotification(
+        testTokens,
+        testTitle,
+        testMessage,
+      );
 
       expect(mockSendEachForMulticast).toHaveBeenCalledTimes(1);
       expect(mockSendEachForMulticast).toHaveBeenCalledWith({
@@ -106,9 +118,20 @@ describe('FirebaseService', () => {
     });
 
     it('토큰 배열이 비어있으면, FCM을 호출하지 않고 에러 객체를 즉시 반환해야 한다', async () => {
-      const result = await service.multiFcm([], testTitle, testMessage);
+      const mockError = {
+        code: 'EMPTY_TOKENS',
+        message: 'Tokens are empty',
+      };
+      const result = await service.sendMulticastNotification(
+        [],
+        testTitle,
+        testMessage,
+      );
       expect(mockSendEachForMulticast).not.toHaveBeenCalled();
-      expect(result).toEqual({ error: 'Tokens are empty' });
+      expect(result).toEqual({
+        error: mockError.code,
+        message: mockError.message,
+      });
     });
 
     it('multi-cast 전송 중 에러가 발생하면, 포맷에 맞는 에러 객체를 반환해야 한다', async () => {
@@ -118,7 +141,11 @@ describe('FirebaseService', () => {
       };
       mockSendEachForMulticast.mockRejectedValue(mockError);
 
-      const result = await service.multiFcm(testTokens, testTitle, testMessage);
+      const result = await service.sendMulticastNotification(
+        testTokens,
+        testTitle,
+        testMessage,
+      );
 
       expect(result).toEqual({
         error: mockError.code,
