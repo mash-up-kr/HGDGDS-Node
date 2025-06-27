@@ -12,17 +12,16 @@ export class UsersService {
     userId: number,
     updateDto: UpdateUserSettingsRequestDto,
   ): Promise<UpdateUserSettingsResponseDto> {
-    const existingUser = await this.usersRepository.findUserById(userId);
-
-    if (!existingUser) {
-      throw new UserNotFoundException();
-    }
-
     const updatedUser = await this.usersRepository.updateUserSettings(
       userId,
       updateDto,
     );
 
-    return new UpdateUserSettingsResponseDto(updatedUser);
+    if (!updatedUser) {
+      throw new UserNotFoundException();
+    }
+
+    const response = new UpdateUserSettingsResponseDto(updatedUser);
+    return response;
   }
 }
