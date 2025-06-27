@@ -6,12 +6,15 @@ import { JwtService } from '@nestjs/jwt';
 import { SignUpRequestDto } from './dto/request/sign-up.request.dto';
 import { SignUpResponseDto } from './dto/response/sign-up.response';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { getProfileImagePath } from '@/common/enums/profile-image-code';
+import { FilesService } from '@/files/files.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly jwtModule: JwtService,
+    private readonly filesService: FilesService,
   ) {}
 
   private async issueAccessToken(payload: JwtPayload) {
@@ -41,6 +44,10 @@ export class AuthService {
     };
     const accessToken = await this.issueAccessToken(payload);
 
-    return new SignUpResponseDto(user, accessToken);
+    const filePath = getProfileImagePath(user.profileImageCode);
+    const profileImageUrl =
+      await this.filesService.getAccessPresignedUrl(filePath);
+
+    return new SignUpResponseDto(user, accessToken, profileImageUrl);
   }
 }

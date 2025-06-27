@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from '@/users/entities/user.entity';
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
+import { User } from '@/users/entities/user.entity';
 
-export class SignUpDataDto {
+export class SignUpResponseDto {
   @ApiProperty({
     description: '생성된 사용자 ID',
     example: 123,
@@ -23,10 +23,17 @@ export class SignUpDataDto {
 
   @ApiProperty({
     description: '프로필 이미지 코드',
-    example: ProfileImageCode.IMG_001, // 예시값 변경
-    enum: Object.values(ProfileImageCode), // enum 추가
+    example: ProfileImageCode.IMG_001,
+    enum: Object.values(ProfileImageCode),
   })
-  profileImageCode: ProfileImageCode; // 타입 변경: string → ProfileImageCode
+  profileImageCode: ProfileImageCode;
+
+  @ApiProperty({
+    description: '프로필 이미지 URL',
+    example:
+      'https://kr.object.ncloudstorage.com/app-images/assets/img_profile_01.png',
+  })
+  profileImageUrl: string;
 
   @ApiProperty({
     description: '계정 생성 시간',
@@ -34,44 +41,19 @@ export class SignUpDataDto {
   })
   createdAt: string;
 
-  constructor(user: User) {
-    this.userId = user.id;
-    this.deviceId = user.deviceId;
-    this.nickname = user.nickname;
-    this.profileImageCode = user.profileImageCode;
-    this.createdAt = user.createdAt.toISOString();
-  }
-}
-
-export class SignUpResponseDto {
-  @ApiProperty({
-    description: '응답 코드',
-    example: '200',
-  })
-  code: string;
-
-  @ApiProperty({
-    description: '응답 메시지',
-    example: 'OK',
-  })
-  message: string;
-
-  @ApiProperty({
-    description: '회원가입 결과 데이터',
-    type: SignUpDataDto,
-  })
-  data: SignUpDataDto;
-
   @ApiProperty({
     description: 'JWT 액세스 토큰',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   })
-  accessToken: string; // JWT 토큰 필드 추가
+  accessToken: string;
 
-  constructor(user: User, accessToken: string) {
-    this.code = '200';
-    this.message = 'OK';
-    this.data = new SignUpDataDto(user);
+  constructor(user: User, accessToken: string, profileImageUrl: string) {
+    this.userId = user.id;
+    this.deviceId = user.deviceId;
+    this.nickname = user.nickname;
+    this.profileImageCode = user.profileImageCode;
+    this.profileImageUrl = profileImageUrl;
+    this.createdAt = user.createdAt.toISOString();
     this.accessToken = accessToken;
   }
 }
