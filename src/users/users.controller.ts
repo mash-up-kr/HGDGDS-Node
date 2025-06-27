@@ -153,7 +153,7 @@ export class UsersController {
   @Patch('me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '내 설정 변경',
+    summary: '내 설정 변경 ✅',
     description:
       '닉네임, 프로필 이미지, 예약 알림 설정, 콕찌르기 알림 설정을 변경합니다. 변경이 필요한 필드만 전송하면 됩니다.',
   })
