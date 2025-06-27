@@ -27,6 +27,15 @@ jobs:
       - name: Lint code
         run: yarn lint
 
+      - name: Debug file structure and configs
+        run: |
+          echo "--- Current Directory ---"
+          pwd
+          echo "--- Root Directory Listing (All files) ---"
+          ls -laR
+          echo "--- package.json Content ---"
+          cat package.json
+
       - name: Run tests
         run: yarn test
 
