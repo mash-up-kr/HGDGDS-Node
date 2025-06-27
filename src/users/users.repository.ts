@@ -12,8 +12,6 @@ import {
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
-import { ProfileImageCode } from '@/common/enums/profile-image-code';
-import { UserNotFoundException } from '@/common/exception/user.exception';
 
 @Injectable()
 export class UsersRepository extends Repository<User> {
@@ -29,36 +27,28 @@ export class UsersRepository extends Repository<User> {
   async updateUserSettings(
     userId: number,
     updateData: UpdateUserSettingsRequestDto,
-  ): Promise<User> {
-    const updateFields: Partial<User> = {
+  ): Promise<User | null> {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      return null;
+    }
+
+    const {
+      nickname,
+      profileImageCode,
+      reservationAlarmSetting,
+      kokAlarmSetting,
+    } = updateData;
+
+    Object.assign(user, {
+      ...(nickname !== undefined && { nickname }),
+      ...(profileImageCode !== undefined && { profileImageCode }),
+      ...(reservationAlarmSetting !== undefined && { reservationAlarmSetting }),
+      ...(kokAlarmSetting !== undefined && { kokAlarmSetting }),
       updatedAt: new Date(),
-    };
+    });
 
-    if (updateData.nickname !== undefined) {
-      updateFields.nickname = updateData.nickname;
-    }
-
-    if (updateData.profileImageCode !== undefined) {
-      updateFields.profileImageCode =
-        updateData.profileImageCode as ProfileImageCode;
-    }
-
-    if (updateData.reservationAlarmSetting !== undefined) {
-      updateFields.reservationAlarmSetting = updateData.reservationAlarmSetting;
-    }
-
-    if (updateData.kokAlarmSetting !== undefined) {
-      updateFields.kokAlarmSetting = updateData.kokAlarmSetting;
-    }
-
-    await this.update(userId, updateFields);
-
-    const updatedUser = await this.findUserById(userId);
-    if (!updatedUser) {
-      throw new UserNotFoundException();
-    }
-
-    return updatedUser;
+    return await this.save(user);
   }
 
   public async encryptPassword(password: string): Promise<string> {

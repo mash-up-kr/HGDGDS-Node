@@ -8,12 +8,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CheckNicknameQueryDto,
   CheckNicknameResponseDto,
@@ -29,6 +24,7 @@ import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { Roles } from '@/common/decorator/roles.decorator';
 import { UserRole } from '@/common/enums/user-role';
+import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
 import { ERROR_CODES } from '@/common/constants/error-codes';
 
@@ -36,11 +32,11 @@ import { ERROR_CODES } from '@/common/constants/error-codes';
 @Controller('users')
 @Roles(UserRole.USER)
 @UseGuards(GlobalAuthGuard)
+@ApiAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @Get('me')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: '내 정보 조회',
     description: '현재 로그인한 사용자의 정보와 통계를 조회합니다.',
