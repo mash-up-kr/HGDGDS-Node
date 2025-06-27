@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
 
 @Injectable()
 export class UsersRepository extends Repository<User> {
@@ -18,6 +19,36 @@ export class UsersRepository extends Repository<User> {
 
   constructor(private readonly dataSource: DataSource) {
     super(User, dataSource.createEntityManager());
+  }
+
+  /**
+   * 사용자 설정 업데이트 (요청으로 온 필드만 업데이트.)
+   */
+  async updateUserSettings(
+    userId: number,
+    updateData: UpdateUserSettingsRequestDto,
+  ): Promise<User | null> {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      return null;
+    }
+
+    const {
+      nickname,
+      profileImageCode,
+      reservationAlarmSetting,
+      kokAlarmSetting,
+    } = updateData;
+
+    Object.assign(user, {
+      ...(nickname !== undefined && { nickname }),
+      ...(profileImageCode !== undefined && { profileImageCode }),
+      ...(reservationAlarmSetting !== undefined && { reservationAlarmSetting }),
+      ...(kokAlarmSetting !== undefined && { kokAlarmSetting }),
+      updatedAt: new Date(),
+    });
+
+    return await this.save(user);
   }
 
   public async encryptPassword(password: string): Promise<string> {
@@ -44,7 +75,7 @@ export class UsersRepository extends Repository<User> {
     const user = this.create({
       deviceId: userData.deviceId,
       nickname: userData.nickname,
-      profileImageCode: userData.profileImageCode, // 변경
+      profileImageCode: userData.profileImageCode,
     });
 
     return await this.save(user);
