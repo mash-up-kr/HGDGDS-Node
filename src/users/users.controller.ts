@@ -44,8 +44,7 @@ export class UsersController {
     description: '현재 로그인한 사용자의 정보와 통계를 조회합니다.',
   })
   @CommonResponseDecorator(MyInfoResponseDto)
-  @ApiErrorResponse(401, ERROR_CODES.INVALID_TOKEN)
-  @ApiErrorResponse(404, ERROR_CODES.USER_NOT_FOUND)
+  @ApiErrorResponse(UserNotFoundException)
   async getMyInfo(@CurrentUser() user: User): Promise<MyInfoResponseDto> {
     return await this.usersService.getMyInfo(user.id);
   }
