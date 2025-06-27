@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { FirebaseError } from 'firebase-admin';
 import {
   Message,
   MulticastMessage,
@@ -33,13 +34,19 @@ export class FirebaseService {
       const response = await admin.messaging().send(payload);
       return { sent_message: response };
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error instanceof FirebaseError) {
+        return {
+          error: error.code,
+          message: error.message,
+        };
+      }
+      if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
         return {
           error: (error as { code: string }).code,
           message: (error as { message: string }).message,
         };
       }
-      return { error: 'UnknownError', message: (error as Error).message };
+      return { error: 'UNKNOWN_ERROR', message: (error as Error).message };
     }
   }
 
@@ -63,13 +70,19 @@ export class FirebaseService {
       const result = await admin.messaging().sendEachForMulticast(payload);
       return result;
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error) {
+      if (error instanceof FirebaseError) {
+        return {
+          error: error.code,
+          message: error.message,
+        };
+      }
+      if (error && typeof error === 'object' && 'code' in error && 'message' in error) {
         return {
           error: (error as { code: string }).code,
           message: (error as { message: string }).message,
         };
       }
-      return { error: 'UnknownError', message: (error as Error).message };
+      return { error: 'UNKNOWN_ERROR', message: (error as Error).message };
     }
   }
 }
