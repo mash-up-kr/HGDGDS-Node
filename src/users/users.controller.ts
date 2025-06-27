@@ -12,14 +12,14 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CheckNicknameQueryDto,
   CheckNicknameResponseDto,
-  GetMyInfoResponseDto,
 } from '../docs/dto/user.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
+import { UsersService } from './services/users.service';
 import { UpdateUserSettingsRequestDto } from './dto/request/update-user-settings.request.dto';
 import { UpdateUserSettingsResponseDto } from './dto/response/update-user-settings.response';
+import { GetMyInfoResponseDto as MyInfoResponseDto } from './dto/response/get-my-info.response.dto';
 import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { Roles } from '@/common/decorator/roles.decorator';
@@ -35,59 +35,18 @@ import { ERROR_CODES } from '@/common/constants/error-codes';
 @ApiAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
   @Get('me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '내 정보 조회',
+    summary: '내 정보 조회 ✅',
     description: '현재 로그인한 사용자의 정보와 통계를 조회합니다.',
   })
-  @ApiResponse({
-    status: 200,
-    description: '사용자 정보 조회 성공',
-    type: GetMyInfoResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '사용자를 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: '1000',
-      message: '찾을 수 없는 유저입니다.',
-    },
-  })
-  getMyInfo(): GetMyInfoResponseDto {
-    // TODO: 실제 서비스 로직 구현
-    // - JWT에서 사용자 ID 추출
-    // - 사용자 정보 조회
-    // - 예약 통계 계산 (총 예약 수, 성공 예약 수, 성공률)
-
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        userId: 123,
-        nickname: '남아라 병아리',
-        profileImageCode: '01',
-        statistics: {
-          totalReservations: 3,
-          successReservations: 2,
-          successRate: 90,
-        },
-        reservationAlarmSetting: true,
-        kokAlarmSetting: true,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-06-03T15:30:00Z',
-      },
-    };
+  @CommonResponseDecorator(MyInfoResponseDto)
+  @ApiErrorResponse(401, ERROR_CODES.INVALID_TOKEN)
+  @ApiErrorResponse(404, ERROR_CODES.USER_NOT_FOUND)
+  async getMyInfo(@CurrentUser() user: User): Promise<MyInfoResponseDto> {
+    return await this.usersService.getMyInfo(user.id);
   }
 
   @Get('check-nickname')
