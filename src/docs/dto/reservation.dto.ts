@@ -89,19 +89,6 @@ export class CreateReservationResponse {
   }
 }
 
-/**
- * 예약 참가
- */
-export class JoinReservationRequestDto {
-  @ApiProperty({
-    description: '참가할 사용자 ID',
-    example: 123,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  userId: number;
-}
-
 export class ParticipantInfoDto {
   @ApiProperty({
     description: '현재 참가자 수 (주최자 포함)',

@@ -26,7 +26,6 @@ import {
   GetReservationMembersResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
-  JoinReservationRequestDto,
   JoinReservationResponseDto,
   UpdateReservationRequestDto,
   UpdateReservationResponseDto,
@@ -51,6 +50,8 @@ import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { User } from '@/users/entities/user.entity';
 import { FilesService } from '@/files/files.service';
 import { Reservation } from './entities/reservation.entity';
+import { Public } from '@/common/decorator/public.decorator';
+import { ERROR_CODES } from '@/common/constants/error-codes';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -113,8 +114,6 @@ export class ReservationsController {
   }
 
   @Post(':reservationId/join')
-  @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: '예약 참가',
     description:
@@ -127,11 +126,6 @@ export class ReservationsController {
     type: 'number',
   })
   @ApiResponse({
-    status: 200,
-    description: '예약 참가 성공',
-    type: JoinReservationResponseDto,
-  })
-  @ApiResponse({
     status: 400,
     description: '잘못된 요청 (이미 참가한 예약, 정원 초과 등)',
     type: ErrorResponseDto,
@@ -139,26 +133,10 @@ export class ReservationsController {
       reservationFull: {
         summary: '예약 정원 초과',
         value: {
-          code: '2001',
-          message: '예약 정원이 초과되었습니다. (최대 20명)', //NOTE: 확인필요
+          code: ERROR_CODES.RESERVATION_FULL.code,
+          message: ERROR_CODES.RESERVATION_FULL.message,
         },
       },
-      alreadyJoined: {
-        summary: '이미 참가한 예약',
-        value: {
-          code: '2006',
-          message: '이미 참가한 예약입니다.',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
     },
   })
   @ApiResponse({
@@ -166,8 +144,8 @@ export class ReservationsController {
     description: '예약을 찾을 수 없음',
     type: ErrorResponseDto,
     example: {
-      code: '2000',
-      message: '찾을 수 없는 예약입니다.',
+      code: ERROR_CODES.RESERVATION_NOT_FOUND.code,
+      message: ERROR_CODES.RESERVATION_NOT_FOUND.message,
     },
   })
   @ApiResponse({
@@ -175,39 +153,16 @@ export class ReservationsController {
     description: '이미 참가한 예약',
     type: ErrorResponseDto,
     example: {
-      code: '2006',
-      message: '이미 참가한 예약입니다.',
+      code: ERROR_CODES.ALREADY_JOINED.code,
+      message: ERROR_CODES.ALREADY_JOINED.message,
     },
   })
-  joinReservation(
+  @CommonResponseDecorator()
+  async joinReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-    @Body() joinDto: JoinReservationRequestDto,
-  ): JoinReservationResponseDto {
-    // 임시로 최대 20명 제한 예시
-    const maxParticipants = 20;
-    const currentParticipants = 3;
-
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservationId: reservationId,
-        userId: joinDto.userId,
-        joinedAt: new Date().toISOString(),
-        participantInfo: {
-          currentCount: currentParticipants + 1,
-          maxCount: maxParticipants,
-          availableSlots: maxParticipants - currentParticipants - 1,
-        },
-        reservation: {
-          reservationId: reservationId,
-          title: '브런치 모임',
-          category: '맛집',
-          reservationDatetime: '2025-01-04T09:00:00+09:00',
-          hostId: 1,
-        },
-      },
-    };
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    await this.reservationsService.joinReservation(reservationId, user.id);
   }
 
   @Get()

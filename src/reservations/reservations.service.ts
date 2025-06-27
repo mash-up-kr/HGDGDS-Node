@@ -6,6 +6,11 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UserReservation } from './entities/user-reservation.entity';
 import { Image } from '@/images/entities/images.entity';
 import { ImageParentType } from '@/common/enums/image-parent-type';
+import {
+  ReservationAlreadyJoinedException,
+  ReservationFullException,
+  ReservationNotFoundException,
+} from '@/common/exception/reservation.exception';
 
 @Injectable()
 export class ReservationsService {
@@ -47,6 +52,55 @@ export class ReservationsService {
       await manager.getRepository(UserReservation).save(userReservation);
 
       return savedReservation;
+    });
+  }
+
+  async joinReservation(
+    reservationId: number,
+    userId: number,
+  ): Promise<UserReservation> {
+    const maxParticipants = 30;
+
+    return await this.dataSource.transaction(async (manager) => {
+      const userReservationRepo = manager.getRepository(UserReservation);
+      const reservationRepo = manager.getRepository(Reservation);
+
+      // 1. Reservation 조회
+      const reservation = await reservationRepo.findOne({
+        where: { id: reservationId },
+        relations: ['host'],
+      });
+
+      if (!reservation) {
+        throw new ReservationNotFoundException();
+      }
+
+      // 2. 이미 가입된 예약인지 확인
+      const existing = await userReservationRepo.findOne({
+        where: {
+          reservation: { id: reservationId },
+          user: { id: userId },
+        },
+      });
+      if (existing) {
+        throw new ReservationAlreadyJoinedException();
+      }
+
+      // 3. 예약 멤버 수 확인
+      const memberCount = await userReservationRepo.count({
+        where: { reservation: { id: reservationId } },
+      });
+      if (memberCount >= maxParticipants) {
+        throw new ReservationFullException();
+      }
+
+      // 4. UserReservation 생성
+      const userReservation = userReservationRepo.create({
+        user: { id: userId },
+        reservation,
+      });
+
+      return await userReservationRepo.save(userReservation);
     });
   }
 }
