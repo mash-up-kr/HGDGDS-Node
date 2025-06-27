@@ -1,7 +1,7 @@
 import { HttpException } from '@nestjs/common';
 
 type ErrorCodeObject = {
-  code: string;
+  code: number;
   message: string;
 };
 
