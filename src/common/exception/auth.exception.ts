@@ -8,16 +8,6 @@ export class DuplicateDeviceException extends BaseException {
   }
 }
 
-export class ValidationFailedException extends BaseException {
-  constructor(customMessage?: string) {
-    super(
-      HttpStatus.UNPROCESSABLE_ENTITY,
-      ERROR_CODES.VALIDATION_FAILED,
-      customMessage,
-    );
-  }
-}
-
 export class UserNotFoundException extends BaseException {
   constructor() {
     super(HttpStatus.NOT_FOUND, ERROR_CODES.USER_NOT_FOUND);
