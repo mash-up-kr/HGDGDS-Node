@@ -29,6 +29,13 @@ export class SignUpResponseDto {
   profileImageCode: ProfileImageCode;
 
   @ApiProperty({
+    description: '프로필 이미지 URL',
+    example:
+      'https://kr.object.ncloudstorage.com/app-images/assets/img_profile_01.png',
+  })
+  profileImageUrl: string;
+
+  @ApiProperty({
     description: '계정 생성 시간',
     example: '2024-06-03T10:00:00Z',
   })
@@ -40,11 +47,12 @@ export class SignUpResponseDto {
   })
   accessToken: string;
 
-  constructor(user: User, accessToken: string) {
+  constructor(user: User, accessToken: string, profileImageUrl: string) {
     this.userId = user.id;
     this.deviceId = user.deviceId;
     this.nickname = user.nickname;
     this.profileImageCode = user.profileImageCode;
+    this.profileImageUrl = profileImageUrl;
     this.createdAt = user.createdAt.toISOString();
     this.accessToken = accessToken;
   }

@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { SignUpRequestDto } from './dto/request/sign-up.request.dto';
 import { SignUpResponseDto } from './dto/response/sign-up.response';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { getProfileImageUrl } from '@/common/enums/profile-image-code';
 
 @Injectable()
 export class AuthService {
@@ -41,6 +42,8 @@ export class AuthService {
     };
     const accessToken = await this.issueAccessToken(payload);
 
-    return new SignUpResponseDto(user, accessToken);
+    const profileImageUrl = getProfileImageUrl(user.profileImageCode);
+
+    return new SignUpResponseDto(user, accessToken, profileImageUrl);
   }
 }
