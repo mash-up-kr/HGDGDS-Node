@@ -18,7 +18,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: '회원가입 및 로그인',
+    summary: '회원가입 및 로그인 ✅',
     description: '디바이스 ID와 닉네임으로 새로운 사용자를 등록합니다.',
   })
   @ApiBody({ type: SignUpRequestDto })
