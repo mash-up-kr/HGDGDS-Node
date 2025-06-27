@@ -6,9 +6,11 @@ import {
   FindOptionsRelations,
   FindOptionsSelect,
   FindOptionsWhere,
+  IsNull,
   Repository,
 } from 'typeorm';
 import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersRepository extends Repository<User> {
@@ -27,6 +29,25 @@ export class UsersRepository extends Repository<User> {
     hashedPassword: string,
   ): Promise<boolean> {
     return await bcrypt.compare(password, hashedPassword);
+  }
+
+  async findUserByDeviceId(deviceId: string): Promise<User | null> {
+    return await this.findOne({
+      where: {
+        deviceId,
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async createUser(userData: CreateUserDto): Promise<User> {
+    const user = this.create({
+      deviceId: userData.deviceId,
+      nickname: userData.nickname,
+      profileImageCode: userData.profileImageCode, // 변경
+    });
+
+    return await this.save(user);
   }
 
   async listUser(
