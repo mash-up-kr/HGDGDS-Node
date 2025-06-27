@@ -1,13 +1,13 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-
-import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { Public } from '@/common/decorator/public.decorator';
 import { AuthService } from './auth.service';
 import { SignUpRequestDto } from './dto/request/sign-up.request.dto';
 import { SignUpResponseDto } from './dto/response/sign-up.response';
+import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
+import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 
 @ApiTags('인증')
 @Controller('auth')
@@ -23,15 +23,7 @@ export class AuthController {
   })
   @ApiBody({ type: SignUpRequestDto })
   @CommonResponseDecorator(SignUpResponseDto)
-  @ApiResponse({
-    status: 422,
-    description: '유효성 검사 실패',
-    type: ErrorResponseDto,
-    example: {
-      code: '1002',
-      message: '닉네임은 필수입니다.',
-    },
-  })
+  @ApiErrorResponse(ValidationFailedException, '닉네임은 필수입니다.')
   async signUp(
     @Body() signUpDto: SignUpRequestDto,
   ): Promise<SignUpResponseDto> {

@@ -7,12 +7,10 @@ import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
-  IsNotEmpty,
   IsOptional,
   IsUrl,
   IsArray,
   ArrayMaxSize,
-  IsNumber,
   IsDateString,
   IsIn,
   MaxLength,
@@ -87,19 +85,6 @@ export class CreateReservationResponse {
     this.hostId = host.id;
     this.createdAt = reservation.createdAt.toISOString();
   }
-}
-
-/**
- * 예약 참가
- */
-export class JoinReservationRequestDto {
-  @ApiProperty({
-    description: '참가할 사용자 ID',
-    example: 123,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  userId: number;
 }
 
 export class ParticipantInfoDto {

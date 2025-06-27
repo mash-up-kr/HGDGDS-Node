@@ -26,8 +26,6 @@ import {
   GetReservationMembersResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
-  JoinReservationRequestDto,
-  JoinReservationResponseDto,
   UpdateReservationRequestDto,
   UpdateReservationResponseDto,
 } from '../docs/dto/reservation.dto';
@@ -51,6 +49,13 @@ import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { User } from '@/users/entities/user.entity';
 import { FilesService } from '@/files/files.service';
 import { Reservation } from './entities/reservation.entity';
+import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
+import {
+  ReservationAlreadyJoinedException,
+  ReservationFullException,
+  ReservationNotFoundException,
+} from '@/common/exception/reservation.exception';
+import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -66,19 +71,11 @@ export class ReservationsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: '예약 생성',
+    summary: '예약 생성 ✅',
     description:
       '새로운 예약을 생성합니다. 이미지는 최대 3개까지 업로드 가능합니다.',
   })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (유효하지 않은 카테고리, 날짜 형식 오류 등)',
-    type: ErrorResponseDto,
-    example: {
-      code: '400',
-      message: '유효하지 않은 예약 시간입니다 .',
-    },
-  })
+  @ApiErrorResponse(ValidationFailedException)
   @CommonResponseDecorator(CreateReservationResponse)
   async createReservation(
     @CurrentUser() user: User,
@@ -113,10 +110,8 @@ export class ReservationsController {
   }
 
   @Post(':reservationId/join')
-  @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 참가',
+    summary: '예약 참가 ✅',
     description:
       '초대된 예약에 참가합니다. 사용자 ID를 함께 전송하여 참가 의사를 표현합니다.',
   })
@@ -126,88 +121,16 @@ export class ReservationsController {
     example: 42,
     type: 'number',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 참가 성공',
-    type: JoinReservationResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (이미 참가한 예약, 정원 초과 등)',
-    type: ErrorResponseDto,
-    examples: {
-      reservationFull: {
-        summary: '예약 정원 초과',
-        value: {
-          code: '2001',
-          message: '예약 정원이 초과되었습니다. (최대 20명)', //NOTE: 확인필요
-        },
-      },
-      alreadyJoined: {
-        summary: '이미 참가한 예약',
-        value: {
-          code: '2006',
-          message: '이미 참가한 예약입니다.',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '예약을 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: '2000',
-      message: '찾을 수 없는 예약입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 409,
-    description: '이미 참가한 예약',
-    type: ErrorResponseDto,
-    example: {
-      code: '2006',
-      message: '이미 참가한 예약입니다.',
-    },
-  })
-  joinReservation(
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationFullException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(ReservationAlreadyJoinedException)
+  @CommonResponseDecorator()
+  async joinReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-    @Body() joinDto: JoinReservationRequestDto,
-  ): JoinReservationResponseDto {
-    // 임시로 최대 20명 제한 예시
-    const maxParticipants = 20;
-    const currentParticipants = 3;
-
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservationId: reservationId,
-        userId: joinDto.userId,
-        joinedAt: new Date().toISOString(),
-        participantInfo: {
-          currentCount: currentParticipants + 1,
-          maxCount: maxParticipants,
-          availableSlots: maxParticipants - currentParticipants - 1,
-        },
-        reservation: {
-          reservationId: reservationId,
-          title: '브런치 모임',
-          category: '맛집',
-          reservationDatetime: '2025-01-04T09:00:00+09:00',
-          hostId: 1,
-        },
-      },
-    };
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    await this.reservationsService.joinReservation(reservationId, user.id);
   }
 
   @Get()
