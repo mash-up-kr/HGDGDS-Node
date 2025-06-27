@@ -1,7 +1,7 @@
 import { Entity, Column, Unique } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
 import { UserRole } from '@/common/enums/user-role';
-import { ProfileImageName } from '@/common/enums/profile-image-name';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 @Entity({ name: 'users' })
 @Unique(['deviceId'])
@@ -12,10 +12,10 @@ export class User extends BaseEntity {
   @Column({
     name: 'profile_image_name',
     type: 'enum',
-    enum: ProfileImageName,
+    enum: ProfileImageCode,
     nullable: false,
   })
-  profileImageName: ProfileImageName;
+  profileImageCode: ProfileImageCode;
 
   @Column({ name: 'device_id' })
   deviceId: string;
