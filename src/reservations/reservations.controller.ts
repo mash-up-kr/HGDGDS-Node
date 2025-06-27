@@ -26,7 +26,6 @@ import {
   GetReservationMembersResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
-  JoinReservationResponseDto,
   UpdateReservationRequestDto,
   UpdateReservationResponseDto,
 } from '../docs/dto/reservation.dto';
@@ -50,8 +49,13 @@ import { CurrentUser } from '@/common/decorator/current-user.decorator';
 import { User } from '@/users/entities/user.entity';
 import { FilesService } from '@/files/files.service';
 import { Reservation } from './entities/reservation.entity';
-import { Public } from '@/common/decorator/public.decorator';
-import { ERROR_CODES } from '@/common/constants/error-codes';
+import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
+import {
+  ReservationAlreadyJoinedException,
+  ReservationFullException,
+  ReservationNotFoundException,
+} from '@/common/exception/reservation.exception';
+import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -71,15 +75,7 @@ export class ReservationsController {
     description:
       '새로운 예약을 생성합니다. 이미지는 최대 3개까지 업로드 가능합니다.',
   })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (유효하지 않은 카테고리, 날짜 형식 오류 등)',
-    type: ErrorResponseDto,
-    example: {
-      code: '400',
-      message: '유효하지 않은 예약 시간입니다 .',
-    },
-  })
+  @ApiErrorResponse(ValidationFailedException)
   @CommonResponseDecorator(CreateReservationResponse)
   async createReservation(
     @CurrentUser() user: User,
@@ -115,7 +111,7 @@ export class ReservationsController {
 
   @Post(':reservationId/join')
   @ApiOperation({
-    summary: '예약 참가',
+    summary: '예약 참가 ✅',
     description:
       '초대된 예약에 참가합니다. 사용자 ID를 함께 전송하여 참가 의사를 표현합니다.',
   })
@@ -125,38 +121,10 @@ export class ReservationsController {
     example: 42,
     type: 'number',
   })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (이미 참가한 예약, 정원 초과 등)',
-    type: ErrorResponseDto,
-    examples: {
-      reservationFull: {
-        summary: '예약 정원 초과',
-        value: {
-          code: ERROR_CODES.RESERVATION_FULL.code,
-          message: ERROR_CODES.RESERVATION_FULL.message,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '예약을 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: ERROR_CODES.RESERVATION_NOT_FOUND.code,
-      message: ERROR_CODES.RESERVATION_NOT_FOUND.message,
-    },
-  })
-  @ApiResponse({
-    status: 409,
-    description: '이미 참가한 예약',
-    type: ErrorResponseDto,
-    example: {
-      code: ERROR_CODES.ALREADY_JOINED.code,
-      message: ERROR_CODES.ALREADY_JOINED.message,
-    },
-  })
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationFullException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(ReservationAlreadyJoinedException)
   @CommonResponseDecorator()
   async joinReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,

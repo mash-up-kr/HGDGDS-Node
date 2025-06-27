@@ -26,7 +26,8 @@ import { Roles } from '@/common/decorator/roles.decorator';
 import { UserRole } from '@/common/enums/user-role';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
-import { ERROR_CODES } from '@/common/constants/error-codes';
+import { InvalidTokenException } from '@/common/exception/auth.exception';
+import { UserNotFoundException } from '@/common/exception/user.exception';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -157,8 +158,8 @@ export class UsersController {
     description:
       '닉네임, 프로필 이미지, 예약 알림 설정, 콕찌르기 알림 설정을 변경합니다. 변경이 필요한 필드만 전송하면 됩니다.',
   })
-  @ApiErrorResponse(401, ERROR_CODES.INVALID_TOKEN)
-  @ApiErrorResponse(404, ERROR_CODES.USER_NOT_FOUND)
+  @ApiErrorResponse(InvalidTokenException)
+  @ApiErrorResponse(UserNotFoundException)
   @CommonResponseDecorator(UpdateUserSettingsResponseDto)
   async updateMySettings(
     @Body() updateDto: UpdateUserSettingsRequestDto,
