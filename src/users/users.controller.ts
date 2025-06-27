@@ -39,7 +39,7 @@ export class UsersController {
   @Get('me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '내 정보 조회',
+    summary: '내 정보 조회 ✅',
     description: '현재 로그인한 사용자의 정보와 통계를 조회합니다.',
   })
   @CommonResponseDecorator(MyInfoResponseDto)
