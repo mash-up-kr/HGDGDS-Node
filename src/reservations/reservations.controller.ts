@@ -71,7 +71,7 @@ export class ReservationsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: '예약 생성',
+    summary: '예약 생성 ✅',
     description:
       '새로운 예약을 생성합니다. 이미지는 최대 3개까지 업로드 가능합니다.',
   })
