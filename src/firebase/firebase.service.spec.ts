@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseService } from './firebase.service';
 
-jest.mock('./firebase.config', () => ({
+jest.mock('src/firebase/firebase.config', () => ({
   __esModule: true,
   default: jest.fn(() => ({})),
 }));
