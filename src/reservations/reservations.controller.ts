@@ -26,8 +26,6 @@ import {
   GetReservationMembersResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
-  UpdateReservationRequestDto,
-  UpdateReservationResponseDto,
 } from '../docs/dto/reservation.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { PaginationMetadata } from '@/common/dto/response';
@@ -41,8 +39,11 @@ import { ReservationResultDto } from './dto/response/result.dto';
 import { RivalResponse } from './dto/response/rival.response';
 import { CommonResponse } from '@/common/response/common.response';
 import { CreateReservationRequest } from './dto/request/create-reservation.request';
+import { UpdateReservationRequest } from './dto/request/update-reservation.request';
+import { UpdateReservationResponse } from './dto/response/update-reservation.response';
 import { ReservationsService } from './reservations.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { Roles } from '@/common/decorator/roles.decorator';
 import { UserRole } from '@/common/enums/user-role';
 import { CurrentUser } from '@/common/decorator/current-user.decorator';
@@ -54,6 +55,9 @@ import {
   ReservationAlreadyJoinedException,
   ReservationFullException,
   ReservationNotFoundException,
+  NoEditPermissionException,
+  CannotEditStartedException,
+  InvalidTimeUpdateException,
   ReservationTimeNotReachedException,
   UserReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
@@ -323,9 +327,8 @@ export class ReservationsController {
   }
   @Patch(':reservationId')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 정보 수정',
+    summary: '예약 정보 수정 ✅',
     description:
       '예약의 제목, 카테고리, 시간, 설명, 링크, 이미지를 수정합니다. 주최자만 수정 가능합니다.',
   })
@@ -335,93 +338,53 @@ export class ReservationsController {
     example: 42,
     type: 'number',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 수정 성공',
-    type: UpdateReservationResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (유효하지 않은 데이터)',
-    type: ErrorResponseDto,
-    examples: {
-      invalidTime: {
-        summary: '유효하지 않은 예약 시간',
-        value: {
-          code: '2002',
-          message: '예약 시간이 과거입니다.',
-        },
-      },
-      tooManyImages: {
-        summary: '이미지 개수 초과',
-        value: {
-          code: '2005',
-          message: '이미지는 최대 3개까지 업로드 가능합니다.',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 403,
-    description: '수정 권한 없음 (호스트가 아님)',
-    type: ErrorResponseDto,
-    example: {
-      code: '2013',
-      message: '예약을 수정할 권한이 없습니다.',
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '예약을 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: '2000',
-      message: '찾을 수 없는 예약입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 409,
-    description: '수정 불가능한 상태',
-    type: ErrorResponseDto,
-    example: {
-      code: '2014',
-      message: '이미 시작된 예약은 수정할 수 없습니다.',
-    },
-  })
-  updateReservation(
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(NoEditPermissionException)
+  @ApiErrorResponse(CannotEditStartedException)
+  @ApiErrorResponse(InvalidTimeUpdateException)
+  @CommonResponseDecorator(UpdateReservationResponse)
+  async updateReservation(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-    @Body() updateDto: UpdateReservationRequestDto,
-  ): UpdateReservationResponseDto {
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservationId: reservationId,
-        title: updateDto.title || '오아시스를 직접 본다니',
-        category: updateDto.category || '아구',
-        reservationDatetime:
-          updateDto.reservationDatetime || '2025-08-21T19:00:00+09:00',
-        description:
-          updateDto.description ??
-          '1순위로 E열 선정하기. 만약에 안되면 H도 괜찮아요',
-        linkUrl: updateDto.linkUrl ?? 'https://example.com/reservation-link',
-        images: updateDto.images ?? ['path/image1.jpg', 'path/image1.jpg'],
-        hostId: 1,
-        participantCount: 4,
-        maxParticipants: 20,
-        createddAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    };
+    @Body() body: UpdateReservationRequest,
+    @CurrentUser() user: User,
+  ): Promise<UpdateReservationResponse> {
+    const updateDto = new UpdateReservationDto(
+      body.title,
+      body.category,
+      body.reservationDatetime ? new Date(body.reservationDatetime) : undefined,
+      body.description,
+      body.linkUrl,
+      body.images,
+    );
+
+    const updatedReservation = await this.reservationsService.updateReservation(
+      reservationId,
+      user.id,
+      updateDto,
+    );
+
+    const participantCount =
+      await this.reservationsService.getParticipantCount(reservationId);
+
+    const imageUrls: string[] = [];
+    if (body.images && body.images.length > 0) {
+      for (const image of body.images) {
+        try {
+          const url = await this.filesService.getAccessPresignedUrl(image);
+          imageUrls.push(url);
+        } catch (error) {
+          console.error(image + ' URL 생성 실패:', error);
+        }
+      }
+    }
+
+    return new UpdateReservationResponse(
+      updatedReservation,
+      user,
+      participantCount,
+      imageUrls,
+    );
   }
 
   @Get(':reservationId')

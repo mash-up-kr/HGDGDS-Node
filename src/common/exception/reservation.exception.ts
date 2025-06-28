@@ -26,6 +26,24 @@ export class ReservationAlreadyJoinedException extends BaseException {
   }
 }
 
+export class NoEditPermissionException extends BaseException {
+  constructor() {
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.NO_EDIT_PERMISSION);
+  }
+}
+
+export class CannotEditStartedException extends BaseException {
+  constructor() {
+    super(HttpStatus.CONFLICT, ERROR_CODES.CANNOT_EDIT_STARTED);
+  }
+}
+
+export class InvalidTimeUpdateException extends BaseException {
+  constructor() {
+    super(HttpStatus.BAD_REQUEST, ERROR_CODES.INVALID_TIME_UPDATE);
+  }
+}
+
 export class ReservationTimeNotReachedException extends BaseException {
   constructor() {
     super(HttpStatus.BAD_REQUEST, ERROR_CODES.RESERVATION_TIME_NOT_REACHED);
