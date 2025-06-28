@@ -15,8 +15,8 @@ export class FirebaseController {
   async sendTestNotification(@Body() dto: FcmTestDto) {
     return await this.firebaseService.sendNotification(
       dto.token,
-      '콕 찌르기가 활성화 되었어요!',
-      '콕 찔러서 친구들에게 알림을 보내보세요',
+      'FCM 테스트 알림',
+      '테스트 알림이 성공적으로 전송되었습니다',
       '',
     );
   }
