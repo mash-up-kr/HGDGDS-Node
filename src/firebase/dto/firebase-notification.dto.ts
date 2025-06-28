@@ -16,7 +16,7 @@ export type SendNotificationResult =
   | SendNotificationResponse
   | FirebaseOperationError;
 
-// sendMulticastNotification의 반환 타입을 위한 DTO (실제 반환 구조에 맞춰 정의 필요)
+// sendMulticastNotification의 반환 타입을 위한 DTO
 export interface MulticastSendResult {
   responses: BatchResponse[];
   successCount: number;
