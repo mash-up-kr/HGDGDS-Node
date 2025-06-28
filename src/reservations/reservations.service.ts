@@ -125,14 +125,14 @@ export class ReservationsService {
         throw new ReservationNotFoundException();
       }
 
-      // 2. 예약 시간 1시간 이내 확인
+      // 2. 예약 시간 접근 가늩 시간 확인
+      const READY_ACCESS_TIME_MS = 60 * 60 * 1000; // 1시간
       const now = new Date();
-      const oneHourInMs = 60 * 60 * 1000;
-      const oneHourBeforeReservation = new Date(
-        reservation.reservationDatetime.getTime() - oneHourInMs,
+      const accessTimeBeforeReservation = new Date(
+        reservation.reservationDatetime.getTime() - READY_ACCESS_TIME_MS,
       );
 
-      if (now < oneHourBeforeReservation) {
+      if (now < accessTimeBeforeReservation) {
         throw new ReservationTimeNotReachedException();
       }
 
