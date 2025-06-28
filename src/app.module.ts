@@ -13,6 +13,7 @@ import { NotificationLogsModule } from './notification-logs/notification-logs.mo
 import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
 import { FilesModule } from './files/files.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ReservationsModule } from './reservations/reservations.module';
     NotificationLogsModule,
     FilesModule,
     ReservationsModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [
