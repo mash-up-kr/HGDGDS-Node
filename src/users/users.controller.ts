@@ -1,19 +1,13 @@
 import {
   Controller,
   Get,
-  Query,
   HttpCode,
   HttpStatus,
   Patch,
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import {
-  CheckNicknameQueryDto,
-  CheckNicknameResponseDto,
-} from '../docs/dto/user.dto';
-import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { User } from './entities/user.entity';
 import { UsersService } from './services/users.service';
