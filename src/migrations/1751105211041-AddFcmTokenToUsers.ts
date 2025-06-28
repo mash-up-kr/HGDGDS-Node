@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddFcmTokenToUsers1751105211041 implements MigrationInterface {
-  name = 'AddFcmTokenToUsers1703123456789';
+  name = 'AddFcmTokenToUsers1751105211041';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumn(
