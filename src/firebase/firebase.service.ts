@@ -8,7 +8,6 @@ import firebaseConfig from '@/firebase/firebase.config';
 import {
   SendNotificationResponse,
   FirebaseOperationError,
-  MulticastSendResult,
 } from '@/firebase/dto/firebase-notification.dto';
 import { BatchResponse } from 'firebase-admin/lib/messaging';
 import {
@@ -54,7 +53,7 @@ export class FirebaseService {
     token: string,
     title: string,
     message: string,
-    data?: Record<string, string>,
+    url?: string,
   ): Promise<SendNotificationResponse | FirebaseOperationError> {
     if (!token || typeof token !== 'string') {
       throw new InvalidFcmTokenException();
@@ -66,7 +65,7 @@ export class FirebaseService {
         title: title,
         body: message,
       },
-      ...(data && { data }),
+      ...(url && { url }),
     };
 
     try {
@@ -98,8 +97,8 @@ export class FirebaseService {
     tokens: string[],
     title: string,
     message: string,
-    data?: Record<string, string>,
-  ): Promise<MulticastSendResult | FirebaseOperationError | BatchResponse> {
+    url?: string,
+  ): Promise<BatchResponse> {
     if (tokens.length === 0) {
       throw new EmptyTokenListException();
     }
@@ -110,7 +109,7 @@ export class FirebaseService {
         title: title,
         body: message,
       },
-      ...(data && { data }),
+      ...(url && { url }),
     };
 
     try {
