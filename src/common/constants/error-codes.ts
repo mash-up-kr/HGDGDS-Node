@@ -95,27 +95,27 @@ export const ERROR_CODES = {
   },
   // Firebase/알림 관련 (3000번대)
   INVALID_FCM_TOKEN: {
-    code: '3000',
+    code: 3000,
     message: '유효하지 않은 FCM 토큰입니다.',
   },
   FIREBASE_INITIALIZATION_FAILED: {
-    code: '3001',
+    code: 3001,
     message: 'Firebase 초기화에 실패했습니다.',
   },
   NOTIFICATION_SEND_FAILED: {
-    code: '3002',
+    code: 3002,
     message: '알림 전송에 실패했습니다.',
   },
   EMPTY_TOKEN_LIST: {
-    code: '3003',
+    code: 3003,
     message: '토큰 목록이 비어있습니다.',
   },
   FIREBASE_SERVICE_UNAVAILABLE: {
-    code: '3004',
+    code: 3004,
     message: 'Firebase 서비스에 연결할 수 없습니다.',
   },
   INVALID_SERVICE_ACCOUNT: {
-    code: '3005',
+    code: 3005,
     message: '유효하지 않은 Firebase 서비스 계정 설정입니다.',
   },
   // 시스템 에러 (9000번대)
