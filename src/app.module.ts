@@ -14,6 +14,7 @@ import { SimilarGroupsModule } from './similar-groups/similar-groups.module';
 import { FilesModule } from './files/files.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { CodesModule } from './codes/codes.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     FilesModule,
     ReservationsModule,
     FirebaseModule,
+    CodesModule,
   ],
   controllers: [AppController],
   providers: [
