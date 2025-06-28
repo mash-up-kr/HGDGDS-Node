@@ -84,7 +84,6 @@ jobs:
             -p ${{ secrets.APP_EXTERNAL_PORT }}:${{ secrets.APP_EXTERNAL_PORT }} \
             -e APP_MODE=prod \
             --env-file /home/${{ secrets.EC2_USERNAME }}/prod.env \
-
             $DOCKER_IMAGE:latest
 
             docker image prune -f
