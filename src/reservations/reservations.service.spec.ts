@@ -7,6 +7,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import { User } from '@/users/entities/user.entity';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { Image } from '@/images/entities/images.entity';
+import { UserReservation } from './entities/user-reservation.entity';
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
@@ -52,6 +53,7 @@ describe('ReservationsService', () => {
         ReservationsService,
         { provide: DataSource, useValue: mockDataSource },
         { provide: getRepositoryToken(Reservation), useValue: {} },
+        { provide: getRepositoryToken(UserReservation), useValue: {} },
       ],
     }).compile();
 
@@ -62,7 +64,7 @@ describe('ReservationsService', () => {
   it('should call transaction and save all entities', async () => {
     const dto: CreateReservationDto = {
       title: 'Test',
-      category: '맛집' as ReservationCategory,
+      category: 'FOOD' as ReservationCategory,
       reservationDatetime: new Date(),
       host: { id: 1 } as User, // Mock User entity
       images: ['img1.png'],

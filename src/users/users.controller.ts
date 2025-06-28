@@ -1,19 +1,13 @@
 import {
   Controller,
   Get,
-  Query,
   HttpCode,
   HttpStatus,
   Patch,
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import {
-  CheckNicknameQueryDto,
-  CheckNicknameResponseDto,
-} from '../docs/dto/user.dto';
-import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { User } from './entities/user.entity';
 import { UsersService } from './services/users.service';
@@ -49,66 +43,6 @@ export class UsersController {
   @ApiErrorResponse(UserNotFoundException)
   async getMyInfo(@CurrentUser() user: User): Promise<MyInfoResponseDto> {
     return await this.usersService.getMyInfo(user.id);
-  }
-
-  @Get('check-nickname')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: '닉네임 중복 체크',
-    description: '닉네임 사용 가능 여부를 확인합니다.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '닉네임 중복 체크 결과',
-    type: CheckNicknameResponseDto,
-    examples: {
-      available: {
-        summary: '사용 가능한 닉네임',
-        value: {
-          code: '200',
-          message: 'OK',
-          data: {
-            nickname: '김철수',
-            available: true,
-          },
-        },
-      },
-      unavailable: {
-        summary: '이미 사용 중인 닉네임',
-        value: {
-          code: '200',
-          message: 'OK',
-          data: {
-            nickname: '김철수',
-            available: false,
-          },
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '잘못된 요청 (닉네임 형식 오류)',
-    type: ErrorResponseDto,
-    example: {
-      code: '1004',
-      message: '닉네임 형식이 올바르지 않습니다.',
-    },
-  })
-  checkNickname(
-    @Query() query: CheckNicknameQueryDto,
-  ): CheckNicknameResponseDto {
-    // TODO: 실제 서비스 로직 구현 (DB에서 닉네임 중복 확인)
-    const isAvailable = Math.random() > 0.5; // 임시 랜덤 로직
-
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        nickname: query.nickname,
-        available: isAvailable,
-      },
-    };
   }
 
   @Patch('me')
