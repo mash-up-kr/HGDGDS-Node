@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import {
   Message,
@@ -12,22 +12,24 @@ import {
 } from '@/firebase/dto/firebase-notification.dto';
 import { BatchResponse } from 'firebase-admin/lib/messaging';
 
-type FirebaseConfigType = () => admin.ServiceAccount;
-
 @Injectable()
 export class FirebaseService {
   constructor() {
     if (admin.apps.length === 0) {
       try {
+        const serviceAccount = firebaseConfig();
+        if (
+          !serviceAccount ||
+          typeof serviceAccount !== 'object' ||
+          !serviceAccount.private_key
+        ) {
+          throw new Error('Invalid Firebase service account configuration.');
+        }
         admin.initializeApp({
-          credential: admin.credential.cert(
-            (firebaseConfig as FirebaseConfigType)(),
-          ),
+          credential: admin.credential.cert(serviceAccount),
         });
       } catch (error) {
-        throw new InternalServerErrorException(
-          'Firebase initialization failed',
-        );
+        throw new Error('Firebase initialization failed');
       }
     }
   }
