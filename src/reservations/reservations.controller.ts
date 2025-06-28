@@ -481,39 +481,6 @@ export class ReservationsController {
     );
   }
 
-  @Patch(':reservationId/users/message')
-  @ApiOperation({
-    summary: '상태 메시지 변경',
-  })
-  @ApiParam({
-    name: 'reservationId',
-    description: '예약 ID',
-    example: '12345',
-  })
-  @ApiBody({ type: UpdateUserMessageRequest })
-  @CommonResponseDecorator()
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 24시간 이내에만 메시지 변경 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  updateReservationUserMessage() {}
-
   @Post(':reservationId/results')
   @ApiOperation({
     summary: '예약 결과 등록',
