@@ -65,10 +65,6 @@ export const ERROR_CODES = {
     code: 2008,
     message: '호스트는 자신의 예약에 참여할 수 없습니다.',
   },
-  RESERVATION_ACCESS_DENIED: {
-    code: 2009,
-    message: '예약에 접근할 권한이 없습니다.',
-  },
   USER_RESERVATION_NOT_FOUND: {
     code: 2017,
     message: '참가한 예약이 아닙니다.',
