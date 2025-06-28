@@ -12,6 +12,7 @@ import {
 } from '@/firebase/dto/firebase-notification.dto';
 import { BatchResponse } from 'firebase-admin/lib/messaging';
 import { ERROR_CODES } from '@/common/constants/error-codes';
+import { FirebaseError } from 'firebase-admin/lib/utils/error';
 
 @Injectable()
 export class FirebaseService {
@@ -60,25 +61,27 @@ export class FirebaseService {
     try {
       const response = await admin.messaging().send(payload);
       return { sent_message: response };
-    } catch (error: any) {
-      if (
-        error.code === 'messaging/invalid-registration-token' ||
-        error.code === 'messaging/registration-token-not-registered'
-      ) {
-        return {
-          error: ERROR_CODES.INVALID_FCM_TOKEN.code,
-          message: ERROR_CODES.INVALID_FCM_TOKEN.message,
-        };
-      }
+    } catch (error) {
+      if (error instanceof FirebaseError) {
+        if (
+          error.code === 'messaging/invalid-registration-token' ||
+          error.code === 'messaging/registration-token-not-registered'
+        ) {
+          return {
+            error: ERROR_CODES.INVALID_FCM_TOKEN.code,
+            message: ERROR_CODES.INVALID_FCM_TOKEN.message,
+          };
+        }
 
-      if (
-        error.code === 'messaging/third-party-auth-error' ||
-        error.code === 'messaging/authentication-error'
-      ) {
-        return {
-          error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-          message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-        };
+        if (
+          error.code === 'messaging/third-party-auth-error' ||
+          error.code === 'messaging/authentication-error'
+        ) {
+          return {
+            error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
+            message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
+          };
+        }
       }
 
       return {
@@ -113,15 +116,17 @@ export class FirebaseService {
     try {
       const result = await admin.messaging().sendEachForMulticast(payload);
       return result;
-    } catch (error: any) {
-      if (
-        error.code === 'messaging/third-party-auth-error' ||
-        error.code === 'messaging/authentication-error'
-      ) {
-        return {
-          error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-          message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-        };
+    } catch (error) {
+      if (error instanceof FirebaseError) {
+        if (
+          error.code === 'messaging/third-party-auth-error' ||
+          error.code === 'messaging/authentication-error'
+        ) {
+          return {
+            error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
+            message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
+          };
+        }
       }
 
       return {
