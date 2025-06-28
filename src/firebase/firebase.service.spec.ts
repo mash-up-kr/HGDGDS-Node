@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseService } from './firebase.service';
-import { ERROR_CODES } from '@/common/constants/error-codes';
 import * as firebaseAdmin from 'firebase-admin';
+import {
+  InvalidFcmTokenException,
+  FirebaseServiceUnavailableException,
+  NotificationSendFailedException,
+  EmptyTokenListException,
+} from '@/firebase/exception/firebase.exception';
 
 const mockSend = jest.fn();
 const mockSendEachForMulticast = jest.fn();
@@ -72,56 +77,94 @@ describe('FirebaseService', () => {
       expect(result).toEqual({ sent_message: mockMessageId });
     });
 
-    it('빈 토큰이면 INVALID_FCM_TOKEN 에러를 반환해야 한다', async () => {
-      const result = await service.sendNotification('', title, message);
+    it('빈 토큰이면 InvalidFcmTokenException을 던져야 한다', async () => {
+      await expect(
+        service.sendNotification('', title, message),
+      ).rejects.toThrow(InvalidFcmTokenException);
 
-      expect(result).toEqual({
-        error: ERROR_CODES.INVALID_FCM_TOKEN.code,
-        message: ERROR_CODES.INVALID_FCM_TOKEN.message,
-      });
       expect(mockSend).not.toHaveBeenCalled();
     });
 
-    it('invalid-registration-token 에러가 발생하면 INVALID_FCM_TOKEN을 반환해야 한다', async () => {
+    it('null 토큰이면 InvalidFcmTokenException을 던져야 한다', async () => {
+      await expect(
+        service.sendNotification(null as any, title, message),
+      ).rejects.toThrow(InvalidFcmTokenException);
+
+      expect(mockSend).not.toHaveBeenCalled();
+    });
+
+    it('문자열이 아닌 토큰이면 InvalidFcmTokenException을 던져야 한다', async () => {
+      await expect(
+        service.sendNotification(123 as any, title, message),
+      ).rejects.toThrow(InvalidFcmTokenException);
+
+      expect(mockSend).not.toHaveBeenCalled();
+    });
+
+    it('invalid-registration-token 에러가 발생하면 InvalidFcmTokenException을 던져야 한다', async () => {
       const firebaseError = {
         code: 'messaging/invalid-registration-token',
         message: 'Invalid registration token',
       };
       mockSend.mockRejectedValue(firebaseError);
 
-      const result = await service.sendNotification(validToken, title, message);
-
-      expect(result).toEqual({
-        error: ERROR_CODES.INVALID_FCM_TOKEN.code,
-        message: ERROR_CODES.INVALID_FCM_TOKEN.message,
-      });
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(InvalidFcmTokenException);
     });
 
-    it('third-party-auth-error 에러가 발생하면 FIREBASE_SERVICE_UNAVAILABLE을 반환해야 한다', async () => {
+    it('registration-token-not-registered 에러가 발생하면 InvalidFcmTokenException을 던져야 한다', async () => {
+      const firebaseError = {
+        code: 'messaging/registration-token-not-registered',
+        message: 'Registration token not registered',
+      };
+      mockSend.mockRejectedValue(firebaseError);
+
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(InvalidFcmTokenException);
+    });
+
+    it('third-party-auth-error 에러가 발생하면 FirebaseServiceUnavailableException을 던져야 한다', async () => {
       const firebaseError = {
         code: 'messaging/third-party-auth-error',
         message: 'Third party authentication error',
       };
       mockSend.mockRejectedValue(firebaseError);
 
-      const result = await service.sendNotification(validToken, title, message);
-
-      expect(result).toEqual({
-        error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-        message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-      });
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(FirebaseServiceUnavailableException);
     });
 
-    it('알 수 없는 에러가 발생하면 NOTIFICATION_SEND_FAILED를 반환해야 한다', async () => {
+    it('authentication-error 에러가 발생하면 FirebaseServiceUnavailableException을 던져야 한다', async () => {
+      const firebaseError = {
+        code: 'messaging/authentication-error',
+        message: 'Authentication error',
+      };
+      mockSend.mockRejectedValue(firebaseError);
+
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(FirebaseServiceUnavailableException);
+    });
+
+    it('알 수 없는 에러가 발생하면 NotificationSendFailedException을 던져야 한다', async () => {
       const unknownError = new Error('Unknown error');
       mockSend.mockRejectedValue(unknownError);
 
-      const result = await service.sendNotification(validToken, title, message);
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(NotificationSendFailedException);
+    });
 
-      expect(result).toEqual({
-        error: ERROR_CODES.NOTIFICATION_SEND_FAILED.code,
-        message: ERROR_CODES.NOTIFICATION_SEND_FAILED.message,
-      });
+    it('Firebase 에러 코드가 없는 경우 NotificationSendFailedException을 던져야 한다', async () => {
+      const errorWithoutCode = { message: 'Error without code' };
+      mockSend.mockRejectedValue(errorWithoutCode);
+
+      await expect(
+        service.sendNotification(validToken, title, message),
+      ).rejects.toThrow(NotificationSendFailedException);
     });
   });
 
@@ -157,26 +200,99 @@ describe('FirebaseService', () => {
       expect(result).toEqual(mockBatchResponse);
     });
 
-    it('빈 토큰 배열이면 EMPTY_TOKEN_LIST 에러를 반환해야 한다', async () => {
+    it('URL이 있을 때 포함하여 멀티캐스트 알림을 전송해야 한다', async () => {
+      const mockBatchResponse = {
+        successCount: 2,
+        failureCount: 0,
+        responses: [
+          { success: true, messageId: 'msg1' },
+          { success: true, messageId: 'msg2' },
+        ],
+      };
+      const testUrl = 'https://test.com';
+      mockSendEachForMulticast.mockResolvedValue(mockBatchResponse);
+
       const result = await service.sendMulticastNotification(
-        [],
+        validTokens,
         title,
         message,
+        testUrl,
       );
 
-      expect(result).toEqual({
-        error: ERROR_CODES.EMPTY_TOKEN_LIST.code,
-        message: ERROR_CODES.EMPTY_TOKEN_LIST.message,
+      expect(mockSendEachForMulticast).toHaveBeenCalledWith({
+        tokens: validTokens,
+        notification: {
+          title,
+          body: message,
+        },
+        url: testUrl,
       });
+      expect(result).toEqual(mockBatchResponse);
+    });
+
+    it('빈 토큰 배열이면 EmptyTokenListException을 던져야 한다', async () => {
+      await expect(
+        service.sendMulticastNotification([], title, message),
+      ).rejects.toThrow(EmptyTokenListException);
+
       expect(mockSendEachForMulticast).not.toHaveBeenCalled();
     });
 
-    it('third-party-auth-error 에러가 발생하면 FIREBASE_SERVICE_UNAVAILABLE을 반환해야 한다', async () => {
+    it('third-party-auth-error 에러가 발생하면 FirebaseServiceUnavailableException을 던져야 한다', async () => {
       const firebaseError = {
         code: 'messaging/third-party-auth-error',
         message: 'Third party authentication error',
       };
       mockSendEachForMulticast.mockRejectedValue(firebaseError);
+
+      await expect(
+        service.sendMulticastNotification(validTokens, title, message),
+      ).rejects.toThrow(FirebaseServiceUnavailableException);
+    });
+
+    it('authentication-error 에러가 발생하면 FirebaseServiceUnavailableException을 던져야 한다', async () => {
+      const firebaseError = {
+        code: 'messaging/authentication-error',
+        message: 'Authentication error',
+      };
+      mockSendEachForMulticast.mockRejectedValue(firebaseError);
+
+      await expect(
+        service.sendMulticastNotification(validTokens, title, message),
+      ).rejects.toThrow(FirebaseServiceUnavailableException);
+    });
+
+    it('알 수 없는 에러가 발생하면 NotificationSendFailedException을 던져야 한다', async () => {
+      const unknownError = new Error('Unknown error');
+      mockSendEachForMulticast.mockRejectedValue(unknownError);
+
+      await expect(
+        service.sendMulticastNotification(validTokens, title, message),
+      ).rejects.toThrow(NotificationSendFailedException);
+    });
+
+    it('Firebase 에러 코드가 없는 경우 NotificationSendFailedException을 던져야 한다', async () => {
+      const errorWithoutCode = { message: 'Error without code' };
+      mockSendEachForMulticast.mockRejectedValue(errorWithoutCode);
+
+      await expect(
+        service.sendMulticastNotification(validTokens, title, message),
+      ).rejects.toThrow(NotificationSendFailedException);
+    });
+
+    it('일부 성공, 일부 실패한 배치 응답을 올바르게 반환해야 한다', async () => {
+      const mockBatchResponse = {
+        successCount: 1,
+        failureCount: 1,
+        responses: [
+          { success: true, messageId: 'msg1' },
+          {
+            success: false,
+            error: { code: 'messaging/invalid-registration-token' },
+          },
+        ],
+      };
+      mockSendEachForMulticast.mockResolvedValue(mockBatchResponse);
 
       const result = await service.sendMulticastNotification(
         validTokens,
@@ -184,10 +300,9 @@ describe('FirebaseService', () => {
         message,
       );
 
-      expect(result).toEqual({
-        error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-        message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-      });
+      expect(result).toEqual(mockBatchResponse);
+      expect(result.successCount).toBe(1);
+      expect(result.failureCount).toBe(1);
     });
   });
 });
