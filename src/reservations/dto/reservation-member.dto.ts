@@ -41,6 +41,6 @@ export class ReservationMemberDto {
     this.nickname = userReservation.user.nickname;
     this.profileImageCode = userReservation.user.profileImageCode;
     this.status = userReservation.status;
-    this.isHost = userReservation.user.id == hostId;
+    this.isHost = userReservation.user.id === hostId;
   }
 }

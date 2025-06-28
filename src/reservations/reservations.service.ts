@@ -308,9 +308,7 @@ export class ReservationsService {
       throw new ReservationNotFoundException();
     }
 
-    const hostId = reservation.host
-      ? reservation.host.id
-      : (reservation['host_id'] as number);
+    const hostId = reservation.host.id;
 
     const userReservations = await this.userReservationRepository.find({
       where: { reservation: { id: reservationId } },
