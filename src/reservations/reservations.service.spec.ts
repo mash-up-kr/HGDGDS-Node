@@ -13,13 +13,7 @@ describe('ReservationsService', () => {
   let dataSource: DataSource;
 
   beforeEach(async () => {
-    const mockReservation = {
-      id: 123,
-      title: 'Test',
-      category: '맛집',
-      reservationDatetime: new Date(),
-      host: { id: 1 },
-    } as Reservation;
+    const mockReservation = {id: 123} as Reservation;
 
     const mockManager = {
       getRepository: jest.fn().mockImplementation((entity) => {
