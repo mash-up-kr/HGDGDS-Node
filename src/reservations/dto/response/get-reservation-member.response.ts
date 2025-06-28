@@ -24,6 +24,8 @@ export class GetReservationMemberResponse {
   totalCount: number;
 
   constructor(members: ReservationMemberDto[], currentUserId: number) {
+    this.totalCount = members.length;
+
     const foundMember = members.find(
       (member) => member.userId === currentUserId,
     );
@@ -34,6 +36,5 @@ export class GetReservationMemberResponse {
 
     // 현재 사용자 제외
     this.members = members.filter((member) => member.userId !== currentUserId);
-    this.totalCount = members.length;
   }
 }
