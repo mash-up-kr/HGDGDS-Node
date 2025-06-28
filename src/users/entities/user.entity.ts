@@ -32,4 +32,7 @@ export class User extends BaseEntity {
 
   @Column({ name: 'kok_alarm_setting', type: 'boolean', default: true })
   kokAlarmSetting: boolean;
+
+  @Column({ name: 'fcm_token', nullable: true })
+  fcmToken: string | null;
 }
