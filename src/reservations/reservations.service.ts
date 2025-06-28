@@ -15,6 +15,7 @@ import {
   CannotEditStartedException,
   InvalidTimeUpdateException,
 } from '@/common/exception/reservation.exception';
+import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 
 @Injectable()
 export class ReservationsService {
@@ -210,6 +211,12 @@ export class ReservationsService {
     reservationId: number,
     images: string[],
   ): Promise<void> {
+    if (images.length > 3) {
+      throw new ValidationFailedException(
+        '이미지는 최대 3개까지만 업로드 가능합니다.',
+      );
+    }
+
     // 기존 이미지 삭제
     await imageRepo.delete({
       parentType: ImageParentType.RESERVATION,
