@@ -33,7 +33,6 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
-import { UpdateUserMessageRequest } from './dto/request/update.user.message.request';
 import { CreateReservationResultDto } from './dto/request/create.reservation.result.dto';
 import { ReservationResultDto } from './dto/response/result.dto';
 import { RivalResponse } from './dto/response/rival.response';
@@ -480,39 +479,6 @@ export class ReservationsController {
       body.status,
     );
   }
-
-  @Patch(':reservationId/users/message')
-  @ApiOperation({
-    summary: '상태 메시지 변경',
-  })
-  @ApiParam({
-    name: 'reservationId',
-    description: '예약 ID',
-    example: '12345',
-  })
-  @ApiBody({ type: UpdateUserMessageRequest })
-  @CommonResponseDecorator()
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 24시간 이내에만 메시지 변경 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  updateReservationUserMessage() {}
 
   @Post(':reservationId/results')
   @ApiOperation({
