@@ -1,5 +1,6 @@
 import { BasePaginationQueryDto } from '@/common/dto/request';
 import { PaginationMetadata } from '@/common/dto/response';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { Reservation } from '@/reservations/entities/reservation.entity';
@@ -269,8 +270,8 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.DEFAULT,
+    enum: UserReservationStatus,
   })
   userStatus: string;
 
@@ -359,8 +360,8 @@ export class ParticipantDto {
 
   @ApiProperty({
     description: '참가자의 예약 상태',
-    example: '준비완료',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.READY,
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -380,8 +381,8 @@ export class CurrentUserInfoDto {
 
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.DEFAULT,
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -523,25 +524,18 @@ export class MemberDto {
   nickname: string;
 
   @ApiProperty({
-    description: '프로필 이미지 코드 (01-05)',
-    example: '01',
-    enum: ['01', '02', '03', '04', '05'],
+    description: '프로필 이미지 코드',
+        example: ProfileImageCode.PURPLE,
+        enum: Object.values(ProfileImageCode),
   })
   profileImageCode: string;
 
   @ApiProperty({
     description: '참가자의 예약 상태',
-    example: 'READY',
+    example: UserReservationStatus.DEFAULT,
     enum: UserReservationStatus,
   })
   status: string;
-
-  @ApiProperty({
-    description: '참가자의 예약 상태 (한글)',
-    example: '준비완료',
-    enum: ['기본', '준비완료', '실패', '성공'],
-  })
-  statusKr: string;
 
   @ApiProperty({
     description: '상태 메시지',
@@ -571,9 +565,9 @@ export class CurrentUserDto {
   nickname: string;
 
   @ApiProperty({
-    description: '현재 사용자 프로필 이미지 코드',
-    example: '01',
-    enum: ['01', '02', '03', '04', '05'],
+    description: '프로필 이미지 코드',
+    example: ProfileImageCode.PURPLE,
+    enum: Object.values(ProfileImageCode),
   })
   profileImageCode: string;
 
@@ -583,13 +577,6 @@ export class CurrentUserDto {
     enum: UserReservationStatus,
   })
   status: string;
-
-  @ApiProperty({
-    description: '현재 사용자의 예약 상태 (한글)',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
-  })
-  statusKr: string;
 
   @ApiProperty({
     description: '상태 메시지',

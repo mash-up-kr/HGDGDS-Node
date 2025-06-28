@@ -22,7 +22,7 @@ export class UpdateUserSettingsRequestDto {
 
   @ApiProperty({
     description: '프로필 이미지 코드',
-    example: ProfileImageCode.IMG_001,
+    example: ProfileImageCode.PURPLE,
     enum: Object.values(ProfileImageCode),
   })
   @IsOptional()
