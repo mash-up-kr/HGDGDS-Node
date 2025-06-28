@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseService } from './firebase.service';
 import { ERROR_CODES } from '@/common/constants/error-codes';
+import * as firebaseAdmin from 'firebase-admin';
 
 const mockSend = jest.fn();
 const mockSendEachForMulticast = jest.fn();
@@ -31,8 +32,6 @@ jest.mock('@/firebase/firebase.config', () => ({
     token_uri: 'https://oauth2.googleapis.com/token',
   })),
 }));
-
-const firebaseAdmin = require('firebase-admin');
 
 describe('FirebaseService', () => {
   let service: FirebaseService;
