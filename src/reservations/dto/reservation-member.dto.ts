@@ -23,7 +23,7 @@ export class ReservationMemberDto {
 
   @ApiProperty({
     description: '참가자의 예약 상태',
-    example: 'READY',
+    example: UserReservationStatus.DEFAULT,
     enum: UserReservationStatus,
   })
   status: string;
