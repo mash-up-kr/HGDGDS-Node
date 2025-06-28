@@ -3,7 +3,7 @@ export enum ProfileImageCode {
   ORANGE = 'ORANGE',
   GREEN = 'GREEN',
   BLUE = 'BLUE',
-  PINK = 'PINK',
+  PINK = 'PINK'
 }
 
 export const PROFILE_IMAGE_PATH_MAP: Record<ProfileImageCode, string> = {
