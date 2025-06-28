@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FirebaseController } from './firebase.controller';
 import { FirebaseService } from './firebase.service';
 import { FcmTestDto } from '@/firebase/dto/firebase-test.dto';
+import { INestApplication } from '@nestjs/common'; // INestApplication 타입 추가
+import * as request from 'supertest'; // supertest 타입 추가
 
 describe('FirebaseController', () => {
   let controller: FirebaseController;
@@ -107,9 +109,9 @@ describe('FirebaseController', () => {
   });
 });
 
-// E2E Test (선택사항)
+// E2E Test
 describe('FirebaseController (e2e)', () => {
-  let app: any;
+  let app: INestApplication; // INestApplication 타입 사용
   let firebaseService: FirebaseService;
 
   const mockFirebaseService = {
@@ -127,7 +129,7 @@ describe('FirebaseController (e2e)', () => {
       ],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication(); // app은 이제 INestApplication 타입
     firebaseService = moduleFixture.get<FirebaseService>(FirebaseService);
     await app.init();
   });
@@ -139,7 +141,8 @@ describe('FirebaseController (e2e)', () => {
 
   it('/firebase/test (POST) - should send test notification', async () => {
     // Arrange
-    const dto = {
+    const dto: FcmTestDto = {
+      // FcmTestDto 타입 사용
       token: 'test-token-123',
     };
     const expectedResponse = {
@@ -150,7 +153,6 @@ describe('FirebaseController (e2e)', () => {
     mockFirebaseService.sendNotification.mockResolvedValue(expectedResponse);
 
     // Act
-    const request = require('supertest');
     const response = await request(app.getHttpServer())
       .post('/firebase/test')
       .send(dto)
@@ -169,7 +171,8 @@ describe('FirebaseController (e2e)', () => {
 
   it('/firebase/test (POST) - should handle invalid token', async () => {
     // Arrange
-    const dto = {
+    const dto: FcmTestDto = {
+      // FcmTestDto 타입 사용
       token: 'invalid-token',
     };
     const errorMessage = 'Invalid FCM token';
@@ -179,7 +182,6 @@ describe('FirebaseController (e2e)', () => {
     );
 
     // Act
-    const request = require('supertest');
     const response = await request(app.getHttpServer())
       .post('/firebase/test')
       .send(dto)
