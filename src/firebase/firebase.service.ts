@@ -38,7 +38,9 @@ export class FirebaseService {
           throw new InvalidServiceAccountException();
         }
         admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
+          credential: admin.credential.cert(
+            serviceAccount as admin.ServiceAccount,
+          ),
         });
       } catch (error) {
         if (error instanceof InvalidServiceAccountException) {
