@@ -4,8 +4,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { CustomBadRequestException } from './common/exception/request-parsing.exception';
 import { CommonResponseInterceptor } from './common/interceptor';
+import { ValidationFailedException } from './common/exception/request-parsing.exception';
 
 export function nestConfig(app: INestApplication) {
   const reflector = app.get<Reflector>(Reflector);
@@ -19,7 +19,7 @@ export function nestConfig(app: INestApplication) {
             return Object.values(error.constraints ?? {}).join(', ');
           })
           .join(', ');
-        return new CustomBadRequestException(message);
+        return new ValidationFailedException(message);
       },
     }),
   );
