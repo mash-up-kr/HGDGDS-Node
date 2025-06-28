@@ -269,8 +269,8 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.DEFAULT,
+    enum: UserReservationStatus,
   })
   userStatus: string;
 
@@ -359,8 +359,8 @@ export class ParticipantDto {
 
   @ApiProperty({
     description: '참가자의 예약 상태',
-    example: '준비완료',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.READY,
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -380,8 +380,8 @@ export class CurrentUserInfoDto {
 
   @ApiProperty({
     description: '현재 사용자의 예약 상태',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
+    example: UserReservationStatus.DEFAULT,
+    enum: UserReservationStatus,
   })
   status: string;
 
@@ -537,13 +537,6 @@ export class MemberDto {
   status: string;
 
   @ApiProperty({
-    description: '참가자의 예약 상태 (한글)',
-    example: '준비완료',
-    enum: ['기본', '준비완료', '실패', '성공'],
-  })
-  statusKr: string;
-
-  @ApiProperty({
     description: '상태 메시지',
     example: '예약 내가 찢는다!',
     nullable: true,
@@ -583,13 +576,6 @@ export class CurrentUserDto {
     enum: UserReservationStatus,
   })
   status: string;
-
-  @ApiProperty({
-    description: '현재 사용자의 예약 상태 (한글)',
-    example: '기본',
-    enum: ['기본', '준비완료', '실패', '성공'],
-  })
-  statusKr: string;
 
   @ApiProperty({
     description: '상태 메시지',

@@ -4,4 +4,3 @@ export enum UserReservationStatus {
   FAIL = 'FAIL',
   SUCCESS = 'SUCCESS',
 }
-
