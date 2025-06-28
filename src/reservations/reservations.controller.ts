@@ -33,7 +33,6 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
-import { UpdateUserMessageRequest } from './dto/request/update.user.message.request';
 import { CreateReservationResultDto } from './dto/request/create.reservation.result.dto';
 import { ReservationResultDto } from './dto/response/result.dto';
 import { RivalResponse } from './dto/response/rival.response';
