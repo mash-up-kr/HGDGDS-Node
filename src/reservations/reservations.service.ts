@@ -19,12 +19,15 @@ import {
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { ReservationMemberDto } from './dto/reservation-member.dto';
 
 @Injectable()
 export class ReservationsService {
   constructor(
     @InjectRepository(Reservation)
     private readonly reservationRepository: Repository<Reservation>,
+    @InjectRepository(UserReservation)
+    private readonly userReservationRepository: Repository<UserReservation>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -288,9 +291,37 @@ export class ReservationsService {
     }
   }
 
-  async getParticipantCount(reservationId: number): Promise<number> {
+  async getMemberCount(reservationId: number): Promise<number> {
     return await this.dataSource
       .getRepository(UserReservation)
       .count({ where: { reservation: { id: reservationId } } });
+  }
+
+  async getMembers(reservationId: number): Promise<ReservationMemberDto[]> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId },
+      relations: ['host'],
+    });
+
+    // 예약이 존재하지 않으면 예외 처리
+    if (!reservation) {
+      throw new ReservationNotFoundException();
+    }
+
+    const hostId = reservation.host
+      ? reservation.host.id
+      : (reservation['host_id'] as number);
+
+    const userReservations = await this.userReservationRepository.find({
+      where: { reservation: { id: reservationId } },
+      relations: ['user'],
+    });
+    if (!userReservations || userReservations.length === 0) {
+      return [];
+    }
+
+    return userReservations.map(
+      (elem) => new ReservationMemberDto(elem, hostId),
+    );
   }
 }
