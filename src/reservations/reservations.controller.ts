@@ -23,11 +23,9 @@ import {
 import {
   CreateReservationResponse,
   GetReservationDetailResponseDto,
-  GetReservationsQueryDto,
   GetReservationsResponseDto,
 } from '../docs/dto/reservation.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
-import { PaginationMetadata } from '@/common/dto/response';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
@@ -62,6 +60,9 @@ import {
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
+import { InvalidTokenException } from '@/common/exception/auth.exception';
+import { CursorPageOptionsDto } from '@/reservations/dto/request/cursor-page-options-dto';
+import { CursorPageDto } from '@/reservations/dto/response/cursor-page.dto';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -143,7 +144,7 @@ export class ReservationsController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 목록 - 예약정보',
+    summary: '예약 목록 - 예약정보 ✅',
     description:
       '현재 시간 기준으로 예약 목록을 조회합니다. before: 지난 예약, after: 예정된 예약',
   })
@@ -154,62 +155,15 @@ export class ReservationsController {
     required: false,
     example: 'after',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 목록 조회 성공',
-    type: GetReservationsResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  getReservations(
-    @Query() query: GetReservationsQueryDto,
-  ): GetReservationsResponseDto {
-    const mockReservations = [
-      {
-        reservationId: 1,
-        title: '매쉬업 아구찜 직팬 모임',
-        category: '운동경기',
-        reservationDatetime: '2025-07-11T19:00:00+09:00',
-        participantCount: 3,
-        maxParticipants: 20,
-        hostId: 1,
-        hostNickname: '서연',
-        images: ['path/image1.jpg'],
-        userStatus: 'default',
-        isHost: false,
-      },
-      {
-        reservationId: 2,
-        title: '매쉬업 아구찜 직팬 모임',
-        category: '운동경기',
-        reservationDatetime: '2025-07-11T19:00:00+09:00',
-        participantCount: 3,
-        maxParticipants: 20,
-        hostId: 2,
-        hostNickname: '서연',
-        images: ['path/image1.jpg'],
-        userStatus: 'default',
-        isHost: true,
-      },
-    ];
+  @ApiErrorResponse(InvalidTokenException)
+  @CommonResponseDecorator(GetReservationsResponseDto)
+  async getReservations(
+    @Query() query: CursorPageOptionsDto,
+  ): Promise<CommonResponse<CursorPageDto>> {
+    const cursorPageData =
+      await this.reservationsService.getReservations(query);
 
-    const metadata = new PaginationMetadata(query.page, query.limit, 10);
-
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservations: mockReservations,
-        metadata: metadata,
-      },
-    };
+    return new CommonResponse(HttpStatus.OK, 'OK', cursorPageData);
   }
 
   @Get(':reservationId/members')

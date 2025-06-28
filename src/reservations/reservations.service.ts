@@ -20,6 +20,10 @@ import {
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
+import { OrderCondition } from '@/common';
+import { CursorPageMetaDto } from '@/reservations/dto/response/cursor-page-meta.dto';
+import { CursorPageDto } from '@/reservations/dto/response/cursor-page.dto';
+import { CursorPageOptionsDto } from '@/reservations/dto/request/cursor-page-options-dto';
 
 @Injectable()
 export class ReservationsService {
@@ -321,5 +325,106 @@ export class ReservationsService {
     return userReservations.map(
       (elem) => new ReservationMemberDto(elem, hostId),
     );
+  }
+
+  async getReservations(query: CursorPageOptionsDto): Promise<CursorPageDto> {
+    const { cursor, limit = 10, order = OrderCondition.DESC, status } = query;
+
+    const queryBuilder = this.reservationRepository
+      .createQueryBuilder('reservation')
+      .leftJoinAndSelect('reservation.host', 'host')
+      .leftJoinAndSelect('reservation.images', 'images')
+      .select([
+        'reservation.id',
+        'reservation.title',
+        'reservation.category',
+        'reservation.reservationDatetime',
+        'reservation.participantCount',
+        'reservation.maxParticipants',
+        'host.id',
+        'host.nickname',
+        'host.profileImageCode',
+        'images.s3FilePath',
+      ]);
+
+    // Status 필터링
+    const now = new Date();
+    if (status === 'before') {
+      queryBuilder.andWhere('reservation.reservationDatetime < :now', { now });
+    } else if (status === 'after') {
+      queryBuilder.andWhere('reservation.reservationDatetime >= :now', { now });
+    }
+
+    // 커서 기반 필터링 및 정렬
+    const cursorFieldForSort = 'reservationDatetime';
+    const cursorFieldForFilter = 'id';
+    const cursorValue = cursor;
+
+    let cursorReservation: Reservation | null = null;
+
+    if (cursorValue !== undefined) {
+      cursorReservation = await this.reservationRepository.findOne({
+        select: ['reservationDatetime', 'id'],
+        where: { id: cursorValue },
+      });
+
+      if (!cursorReservation) {
+        // 커서에 해당하는 예약이 없으면 빈 결과 반환
+        const meta = new CursorPageMetaDto(0, limit, false, null);
+        return new CursorPageDto([], meta);
+      }
+
+      const cursorDatetime = cursorReservation.reservationDatetime;
+
+      if (order === OrderCondition.DESC) {
+        queryBuilder.andWhere(
+          `(reservation.${cursorFieldForSort} < :cursorDatetime OR (reservation.${cursorFieldForSort} = :cursorDatetime AND reservation.${cursorFieldForFilter} < :cursorId))`,
+          { cursorDatetime, cursorId: cursorValue },
+        );
+      } else {
+        queryBuilder.andWhere(
+          `(reservation.${cursorFieldForSort} > :cursorDatetime OR (reservation.${cursorFieldForSort} = :cursorDatetime AND reservation.${cursorFieldForFilter} > :cursorId))`,
+          { cursorDatetime, cursorId: cursorValue },
+        );
+      }
+    }
+
+    queryBuilder.orderBy(`reservation.${cursorFieldForSort}`, order);
+    queryBuilder.addOrderBy(`reservation.${cursorFieldForFilter}`, order);
+
+    queryBuilder.take(limit);
+
+    const reservations = await queryBuilder.getMany();
+
+    const totalCountQueryBuilder =
+      this.reservationRepository.createQueryBuilder('reservation');
+    if (status === 'before') {
+      totalCountQueryBuilder.andWhere(
+        'reservation.reservationDatetime < :now',
+        { now },
+      );
+    } else if (status === 'after') {
+      totalCountQueryBuilder.andWhere(
+        'reservation.reservationDatetime >= :now',
+        { now },
+      );
+    }
+    const totalCount = await totalCountQueryBuilder.getCount();
+
+    // 메타데이터 계산
+    const hasNextData = reservations.length === limit;
+    const nextCursor =
+      hasNextData && reservations.length > 0
+        ? reservations[reservations.length - 1].id
+        : null;
+
+    const meta = new CursorPageMetaDto(
+      totalCount,
+      limit,
+      hasNextData,
+      nextCursor,
+    );
+
+    return new CursorPageDto(reservations, meta);
   }
 }
