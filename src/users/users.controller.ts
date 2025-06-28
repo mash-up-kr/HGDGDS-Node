@@ -131,7 +131,7 @@ export class UsersController {
   @Patch('fcm-token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'FCM 토큰 업데이트',
+    summary: 'FCM 토큰 업데이트 ✅',
     description:
       '클라이언트로부터 FCM 토큰을 받아 사용자의 FCM 토큰을 업데이트합니다.',
   })
