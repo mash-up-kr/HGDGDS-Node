@@ -69,6 +69,10 @@ export const ERROR_CODES = {
     code: 2009,
     message: '예약에 접근할 권한이 없습니다.',
   },
+  USER_RESERVATION_NOT_FOUND: {
+    code: 2017,
+    message: '참가한 예약이 아닙니다.',
+  },
   RESERVATION_NOT_STARTED: {
     code: 2010,
     message: '예약이 아직 시작되지 않았습니다.',
@@ -92,6 +96,10 @@ export const ERROR_CODES = {
   INVALID_TIME_UPDATE: {
     code: 2015,
     message: '유효하지 않은 시간 수정입니다.',
+  },
+  RESERVATION_TIME_NOT_REACHED: {
+    code: 2016,
+    message: '예약 시간 1시간 이내에만 접근 가능한 기능입니다.',
   },
 
   // 시스템 에러 (9000번대)

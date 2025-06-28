@@ -25,3 +25,15 @@ export class ReservationAlreadyJoinedException extends BaseException {
     super(HttpStatus.BAD_REQUEST, ERROR_CODES.ALREADY_JOINED);
   }
 }
+
+export class ReservationTimeNotReachedException extends BaseException {
+  constructor() {
+    super(HttpStatus.BAD_REQUEST, ERROR_CODES.RESERVATION_TIME_NOT_REACHED);
+  }
+}
+
+export class UserReservationNotFoundException extends BaseException {
+  constructor() {
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.USER_RESERVATION_NOT_FOUND);
+  }
+}
