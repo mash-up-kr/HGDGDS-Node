@@ -1,6 +1,5 @@
 import { BasePaginationQueryDto } from '@/common/dto/request';
 import { PaginationMetadata } from '@/common/dto/response';
-import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { Reservation } from '@/reservations/entities/reservation.entity';
