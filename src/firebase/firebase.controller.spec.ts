@@ -3,7 +3,8 @@ import { FirebaseController } from './firebase.controller';
 import { FirebaseService } from './firebase.service';
 import { FcmTestDto } from '@/firebase/dto/firebase-test.dto';
 import { INestApplication } from '@nestjs/common'; // INestApplication 타입 추가
-import * as request from 'supertest'; // supertest 타입 추가
+import * as request from 'supertest';
+import { InvalidFcmTokenException } from '@/firebase/exception/firebase.exception'; // supertest 타입 추가
 
 describe('FirebaseController', () => {
   let controller: FirebaseController;
@@ -175,10 +176,9 @@ describe('FirebaseController (e2e)', () => {
       // FcmTestDto 타입 사용
       token: 'invalid-token',
     };
-    const errorMessage = 'Invalid FCM token';
 
     mockFirebaseService.sendNotification.mockRejectedValue(
-      new Error(errorMessage),
+      new InvalidFcmTokenException(),
     );
 
     // Act
