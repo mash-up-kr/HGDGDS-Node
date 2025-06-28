@@ -23,7 +23,6 @@ import {
 import {
   CreateReservationResponse,
   GetReservationDetailResponseDto,
-  GetReservationMembersResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
 } from '../docs/dto/reservation.dto';
@@ -61,6 +60,8 @@ import {
   UserReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
+import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
+import { ReservationMemberDto } from './dto/reservation-member.dto';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -213,9 +214,8 @@ export class ReservationsController {
 
   @Get(':reservationId/members')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 멤버 조회',
+    summary: '예약 멤버 조회 ✅',
     description:
       '특정 예약의 모든 참가자 정보를 조회합니다. 현재 사용자 정보도 별도로 제공됩니다.',
   })
@@ -225,99 +225,19 @@ export class ReservationsController {
     example: 42,
     type: 'number',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 멤버 조회 성공',
-    type: GetReservationMembersResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '예약을 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: '2000',
-      message: '찾을 수 없는 예약입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 403,
-    description: '접근 권한 없음 (참가하지 않은 예약)',
-    type: ErrorResponseDto,
-    example: {
-      code: '2009',
-      message: '해당 예약에 접근할 권한이 없습니다.',
-    },
-  })
-  getReservationMembers(
+  @CommonResponseDecorator(GetReservationMemberResponse)
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(UserReservationNotFoundException)
+  async getReservationMembers(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-  ): GetReservationMembersResponseDto {
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        members: [
-          {
-            userId: 1,
-            nickname: '김파디',
-            profileImageCode: '01',
-            status: 'SUCCESS',
-            statusMessage: '예약 내가 찜닷다',
-            isHost: true,
-          },
-          {
-            userId: 2,
-            nickname: '이파디',
-            profileImageCode: '02',
-            status: 'FAIL',
-            statusMessage: '아쉬워서 화이팅',
-            isHost: false,
-          },
-          {
-            userId: 3,
-            nickname: '박파디',
-            profileImageCode: '03',
-            status: 'READY',
-            statusMessage: '나만 믿어라',
-            isHost: false,
-          },
-          {
-            userId: 4,
-            nickname: '최파디',
-            profileImageCode: '04',
-            status: 'DEFAULT',
-            statusMessage: '까먹지마',
-            isHost: false,
-          },
-          {
-            userId: 5,
-            nickname: '정파디',
-            profileImageCode: '05',
-            status: 'DEFAULT',
-            statusMessage: null,
-            isHost: false,
-          },
-        ],
-        me: {
-          userId: 123,
-          nickname: '김철수',
-          profileImageCode: '01',
-          status: 'DEFAULT',
-          statusMessage: '예약 내가 찢는다!',
-          isHost: false,
-        },
-        totalCount: 6,
-      },
-    };
+    @CurrentUser() user: User,
+  ): Promise<GetReservationMemberResponse> {
+    const members: ReservationMemberDto[] =
+      await this.reservationsService.getMembers(reservationId);
+    return new GetReservationMemberResponse(members, user.id);
   }
+
   @Patch(':reservationId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -357,8 +277,8 @@ export class ReservationsController {
       updateDto,
     );
 
-    const participantCount =
-      await this.reservationsService.getParticipantCount(reservationId);
+    const memberCount =
+      await this.reservationsService.getMemberCount(reservationId);
 
     const imageUrls: string[] = [];
     if (body.images && body.images.length > 0) {
@@ -375,7 +295,7 @@ export class ReservationsController {
     return new UpdateReservationResponse(
       updatedReservation,
       user,
-      participantCount,
+      memberCount,
       imageUrls,
     );
   }
