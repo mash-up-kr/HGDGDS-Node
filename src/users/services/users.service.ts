@@ -60,7 +60,7 @@ export class UsersService {
     }
 
     await this.usersRepository.updateFcmToken(userId, fcmToken);
-
+    user.fcmToken = fcmToken;
     const response = new UpdateFcmTokenResponseDto(user);
     return response;
   }
