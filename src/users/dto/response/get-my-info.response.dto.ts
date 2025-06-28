@@ -46,8 +46,8 @@ export class GetMyInfoResponseDto {
 
   @ApiProperty({
     description: '프로필 이미지 코드',
-    example: ProfileImageCode.IMG_001,
-    enum: Object.values(ProfileImageCode),
+    example: ProfileImageCode.PURPLE,
+    enum: ProfileImageCode,
   })
   profileImageCode: ProfileImageCode;
 
