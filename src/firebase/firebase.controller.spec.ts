@@ -185,7 +185,7 @@ describe('FirebaseController (e2e)', () => {
     const response = await request(app.getHttpServer())
       .post('/firebase/test')
       .send(dto)
-      .expect(500);
+      .expect(400);
 
     // Assert
     expect(response.body).toHaveProperty('message');

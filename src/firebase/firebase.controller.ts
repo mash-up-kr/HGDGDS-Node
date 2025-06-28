@@ -12,6 +12,7 @@ export class FirebaseController {
   @ApiOperation({ summary: 'FCM 테스트 알림 전송' })
   @ApiBody({ type: FcmTestDto })
   @ApiResponse({ status: 200, description: '알림 전송 성공' })
+  @ApiResponse({ status: 400, description: '유효하지 않은 FCM 요청' })
   async sendTestNotification(@Body() dto: FcmTestDto) {
     return await this.firebaseService.sendNotification(
       dto.token,
