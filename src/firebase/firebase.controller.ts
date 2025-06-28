@@ -12,7 +12,7 @@ export class FirebaseController {
   constructor(private readonly firebaseService: FirebaseService) {}
 
   @Post('test')
-  @ApiOperation({ summary: 'FCM 테스트 알림 전송' })
+  @ApiOperation({ summary: 'FCM 테스트 알림 전송 ✅' })
   @ApiBody({ type: FcmTestDto })
   @ApiErrorResponse(InvalidFcmTokenException)
   @CommonResponseDecorator()
