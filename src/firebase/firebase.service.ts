@@ -11,7 +11,14 @@ import {
   MulticastSendResult,
 } from '@/firebase/dto/firebase-notification.dto';
 import { BatchResponse } from 'firebase-admin/lib/messaging';
-import { ERROR_CODES } from '@/common/constants/error-codes';
+import {
+  InvalidServiceAccountException,
+  FirebaseInitializationFailedException,
+  InvalidFcmTokenException,
+  FirebaseServiceUnavailableException,
+  NotificationSendFailedException,
+  EmptyTokenListException,
+} from '@/firebase/exception/firebase.exception';
 
 interface FirebaseError {
   code?: string;
@@ -29,13 +36,16 @@ export class FirebaseService {
           typeof serviceAccount !== 'object' ||
           !serviceAccount.private_key
         ) {
-          throw new Error(ERROR_CODES.INVALID_SERVICE_ACCOUNT.message);
+          throw new InvalidServiceAccountException();
         }
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
         });
       } catch (error) {
-        throw new Error(ERROR_CODES.FIREBASE_INITIALIZATION_FAILED.message);
+        if (error instanceof InvalidServiceAccountException) {
+          throw error;
+        }
+        throw new FirebaseInitializationFailedException();
       }
     }
   }
@@ -47,10 +57,7 @@ export class FirebaseService {
     data?: Record<string, string>,
   ): Promise<SendNotificationResponse | FirebaseOperationError> {
     if (!token || typeof token !== 'string') {
-      return {
-        error: ERROR_CODES.INVALID_FCM_TOKEN.code,
-        message: ERROR_CODES.INVALID_FCM_TOKEN.message,
-      };
+      throw new InvalidFcmTokenException();
     }
 
     const payload: Message = {
@@ -72,27 +79,18 @@ export class FirebaseService {
           firebaseError.code === 'messaging/invalid-registration-token' ||
           firebaseError.code === 'messaging/registration-token-not-registered'
         ) {
-          return {
-            error: ERROR_CODES.INVALID_FCM_TOKEN.code,
-            message: ERROR_CODES.INVALID_FCM_TOKEN.message,
-          };
+          throw new InvalidFcmTokenException();
         }
 
         if (
           firebaseError.code === 'messaging/third-party-auth-error' ||
           firebaseError.code === 'messaging/authentication-error'
         ) {
-          return {
-            error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-            message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-          };
+          throw new FirebaseServiceUnavailableException();
         }
       }
 
-      return {
-        error: ERROR_CODES.NOTIFICATION_SEND_FAILED.code,
-        message: ERROR_CODES.NOTIFICATION_SEND_FAILED.message,
-      };
+      throw new NotificationSendFailedException();
     }
   }
 
@@ -103,10 +101,7 @@ export class FirebaseService {
     data?: Record<string, string>,
   ): Promise<MulticastSendResult | FirebaseOperationError | BatchResponse> {
     if (tokens.length === 0) {
-      return {
-        error: ERROR_CODES.EMPTY_TOKEN_LIST.code,
-        message: ERROR_CODES.EMPTY_TOKEN_LIST.message,
-      };
+      throw new EmptyTokenListException();
     }
 
     const payload: MulticastMessage = {
@@ -128,17 +123,11 @@ export class FirebaseService {
           firebaseError.code === 'messaging/third-party-auth-error' ||
           firebaseError.code === 'messaging/authentication-error'
         ) {
-          return {
-            error: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.code,
-            message: ERROR_CODES.FIREBASE_SERVICE_UNAVAILABLE.message,
-          };
+          throw new FirebaseServiceUnavailableException();
         }
       }
 
-      return {
-        error: ERROR_CODES.NOTIFICATION_SEND_FAILED.code,
-        message: ERROR_CODES.NOTIFICATION_SEND_FAILED.message,
-      };
+      throw new NotificationSendFailedException();
     }
   }
 }
