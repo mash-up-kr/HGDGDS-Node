@@ -28,6 +28,8 @@ import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
 import { InvalidTokenException } from '@/common/exception/auth.exception';
 import { UserNotFoundException } from '@/common/exception/user.exception';
+import { UpdateFcmTokenDto } from '@/users/dto/request/update-fcm-token.dto';
+import { UpdateFcmTokenResponseDto } from '@/users/dto/response/update-fcm-token-response.dto';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -124,5 +126,25 @@ export class UsersController {
     @CurrentUser() user: User,
   ): Promise<UpdateUserSettingsResponseDto> {
     return await this.usersService.updateUserSettings(user.id, updateDto);
+  }
+
+  @Patch('fcm-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'FCM 토큰 업데이트 ✅',
+    description:
+      '클라이언트로부터 FCM 토큰을 받아 사용자의 FCM 토큰을 업데이트합니다.',
+  })
+  @ApiErrorResponse(InvalidTokenException)
+  @ApiErrorResponse(UserNotFoundException)
+  @CommonResponseDecorator(UpdateFcmTokenResponseDto)
+  async updateFcmToken(
+    @Body() updateFcmTokenDto: UpdateFcmTokenDto,
+    @CurrentUser() user: User,
+  ): Promise<UpdateFcmTokenResponseDto> {
+    return await this.usersService.updateFcmToken(
+      user.id,
+      updateFcmTokenDto.fcmToken,
+    );
   }
 }
