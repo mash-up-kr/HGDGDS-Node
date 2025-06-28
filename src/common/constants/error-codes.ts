@@ -118,6 +118,14 @@ export const ERROR_CODES = {
     code: 3005,
     message: '유효하지 않은 Firebase 서비스 계정 설정입니다.',
   },
+  FIREBASE_CONFIG_NOT_FOUND: {
+    code: 3006,
+    message: 'Firebase 설정을 찾을 수 없습니다.',
+  },
+  FIREBASE_CONFIG_PARSE_FAILED: {
+    code: 3007,
+    message: 'Firebase 설정 파일 파싱에 실패했습니다.',
+  },
   // 시스템 에러 (9000번대)
   INTERNAL_SERVER_ERROR: {
     code: 9000,

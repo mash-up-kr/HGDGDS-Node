@@ -49,3 +49,21 @@ export class EmptyTokenListException extends BaseException {
     super(HttpStatus.BAD_REQUEST, ERROR_CODES.EMPTY_TOKEN_LIST);
   }
 }
+
+export class FirebaseConfigNotFoundException extends BaseException {
+  constructor() {
+    super(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      ERROR_CODES.FIREBASE_CONFIG_NOT_FOUND,
+    );
+  }
+}
+
+export class FirebaseConfigParseException extends BaseException {
+  constructor() {
+    super(
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      ERROR_CODES.FIREBASE_CONFIG_PARSE_FAILED,
+    );
+  }
+}
