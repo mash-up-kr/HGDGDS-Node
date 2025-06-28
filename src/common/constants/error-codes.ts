@@ -65,9 +65,9 @@ export const ERROR_CODES = {
     code: 2008,
     message: '호스트는 자신의 예약에 참여할 수 없습니다.',
   },
-  USER_RESERVATION_NOT_FOUND: {
-    code: 2017,
-    message: '참가한 예약이 아닙니다.',
+  RESERVATION_ACCESS_DENIED: {
+    code: 2009,
+    message: '예약에 접근할 권한이 없습니다.',
   },
   RESERVATION_NOT_STARTED: {
     code: 2010,
@@ -97,7 +97,43 @@ export const ERROR_CODES = {
     code: 2016,
     message: '예약 시간 1시간 이내에만 접근 가능한 기능입니다.',
   },
-
+  USER_RESERVATION_NOT_FOUND: {
+    code: 2017,
+    message: '참가한 예약이 아닙니다.',
+  },
+  // Firebase/알림 관련 (3000번대)
+  INVALID_FCM_TOKEN: {
+    code: 3000,
+    message: '유효하지 않은 FCM 토큰입니다.',
+  },
+  FIREBASE_INITIALIZATION_FAILED: {
+    code: 3001,
+    message: 'Firebase 초기화에 실패했습니다.',
+  },
+  NOTIFICATION_SEND_FAILED: {
+    code: 3002,
+    message: '알림 전송에 실패했습니다.',
+  },
+  EMPTY_TOKEN_LIST: {
+    code: 3003,
+    message: '토큰 목록이 비어있습니다.',
+  },
+  FIREBASE_SERVICE_UNAVAILABLE: {
+    code: 3004,
+    message: 'Firebase 서비스에 연결할 수 없습니다.',
+  },
+  INVALID_SERVICE_ACCOUNT: {
+    code: 3005,
+    message: '유효하지 않은 Firebase 서비스 계정 설정입니다.',
+  },
+  FIREBASE_CONFIG_NOT_FOUND: {
+    code: 3006,
+    message: 'Firebase 설정을 찾을 수 없습니다.',
+  },
+  FIREBASE_CONFIG_PARSE_FAILED: {
+    code: 3007,
+    message: 'Firebase 설정 파일 파싱에 실패했습니다.',
+  },
   // 시스템 에러 (9000번대)
   INTERNAL_SERVER_ERROR: {
     code: 9000,
