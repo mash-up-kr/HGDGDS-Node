@@ -54,6 +54,8 @@ import {
   ReservationAlreadyJoinedException,
   ReservationFullException,
   ReservationNotFoundException,
+  ReservationTimeNotReachedException,
+  UserReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 
@@ -495,36 +497,32 @@ export class ReservationsController {
 
   @Patch(':reservationId/users/status')
   @ApiOperation({
-    summary: '준비완료/해제 상태변경',
+    summary: '준비완료/해제 상태변경 ✅',
+    description: '예약 시간 1시간 이내에만 준비완료/해제 가능합니다.',
   })
   @ApiParam({
     name: 'reservationId',
     description: '예약 ID',
-    example: '12345',
+    example: 12345,
+    type: 'number',
   })
   @ApiBody({ type: UpdateUserStatusRequest })
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(ReservationTimeNotReachedException)
+  @ApiErrorResponse(UserReservationNotFoundException)
   @CommonResponseDecorator()
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 24시간 이내에만 준비완료 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  updateReservationUserStatus() {}
+  async updateReservationUserStatus(
+    @Param('reservationId', ParseIntPipe) reservationId: number,
+    @Body() body: UpdateUserStatusRequest,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    await this.reservationsService.updateUserStatus(
+      reservationId,
+      user.id,
+      body.status,
+    );
+  }
 
   @Patch(':reservationId/users/message')
   @ApiOperation({

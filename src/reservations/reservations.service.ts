@@ -10,7 +10,10 @@ import {
   ReservationAlreadyJoinedException,
   ReservationFullException,
   ReservationNotFoundException,
+  ReservationTimeNotReachedException,
+  UserReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
+import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 
 @Injectable()
 export class ReservationsService {
@@ -99,6 +102,55 @@ export class ReservationsService {
         user: { id: userId },
         reservation,
       });
+
+      return await userReservationRepo.save(userReservation);
+    });
+  }
+
+  async updateUserStatus(
+    reservationId: number,
+    userId: number,
+    status: UserReservationStatus.DEFAULT | UserReservationStatus.READY,
+  ): Promise<UserReservation> {
+    return await this.dataSource.transaction(async (manager) => {
+      const userReservationRepo = manager.getRepository(UserReservation);
+      const reservationRepo = manager.getRepository(Reservation);
+
+      // 1. 예약 조회
+      const reservation = await reservationRepo.findOne({
+        where: { id: reservationId },
+      });
+
+      if (!reservation) {
+        throw new ReservationNotFoundException();
+      }
+
+      // 2. 예약 시간 1시간 이내 확인
+      const now = new Date();
+      const oneHourInMs = 60 * 60 * 1000;
+      const oneHourBeforeReservation = new Date(
+        reservation.reservationDatetime.getTime() - oneHourInMs,
+      );
+
+      if (now < oneHourBeforeReservation) {
+        throw new ReservationTimeNotReachedException();
+      }
+
+      // 3. 사용자 예약 조회
+      const userReservation = await userReservationRepo.findOne({
+        where: {
+          user: { id: userId },
+          reservation: { id: reservationId },
+        },
+        relations: ['user', 'reservation'],
+      });
+
+      if (!userReservation) {
+        throw new UserReservationNotFoundException();
+      }
+
+      // 4. 상태 업데이트
+      userReservation.status = status;
 
       return await userReservationRepo.save(userReservation);
     });
