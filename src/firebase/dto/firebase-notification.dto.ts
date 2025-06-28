@@ -7,7 +7,7 @@ export interface SendNotificationResponse {
 
 // FCM 발송 작업에서 발생할 수 있는 에러 응답 인터페이스
 export interface FirebaseOperationError {
-  error: string;
+  error: number;
   message: string;
 }
 
