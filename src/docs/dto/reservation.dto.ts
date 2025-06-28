@@ -1,5 +1,6 @@
 import { BasePaginationQueryDto } from '@/common/dto/request';
 import { PaginationMetadata } from '@/common/dto/response';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { Reservation } from '@/reservations/entities/reservation.entity';
@@ -523,9 +524,9 @@ export class MemberDto {
   nickname: string;
 
   @ApiProperty({
-    description: '프로필 이미지 코드 (01-05)',
-    example: '01',
-    enum: ['01', '02', '03', '04', '05'],
+    description: '프로필 이미지 코드',
+        example: ProfileImageCode.PURPLE,
+        enum: Object.values(ProfileImageCode),
   })
   profileImageCode: string;
 
@@ -564,9 +565,9 @@ export class CurrentUserDto {
   nickname: string;
 
   @ApiProperty({
-    description: '현재 사용자 프로필 이미지 코드',
-    example: '01',
-    enum: ['01', '02', '03', '04', '05'],
+    description: '프로필 이미지 코드',
+    example: ProfileImageCode.PURPLE,
+    enum: Object.values(ProfileImageCode),
   })
   profileImageCode: string;
 

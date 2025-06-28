@@ -1,3 +1,4 @@
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -15,9 +16,9 @@ export class ReservationMemberDto {
   nickname: string;
 
   @ApiProperty({
-    description: '프로필 이미지 코드 (01-05)',
-    example: '01',
-    enum: ['01', '02', '03', '04', '05'],
+   description: '프로필 이미지 코드',
+       example: ProfileImageCode.PURPLE,
+       enum: Object.values(ProfileImageCode),
   })
   profileImageCode: string;
 
