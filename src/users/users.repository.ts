@@ -122,7 +122,7 @@ export class UsersRepository extends Repository<User> {
     });
   }
 
-  async updateFcmToken(id: number, fcmToken: string): Promise<void> {
-    await this.update(id, { fcmToken });
+  async updateFcmToken(userId: number, fcmToken: string): Promise<void> {
+    await this.update(userId, { fcmToken });
   }
 }
