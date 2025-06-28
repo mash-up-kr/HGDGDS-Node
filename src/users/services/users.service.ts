@@ -7,6 +7,7 @@ import { UserNotFoundException } from '@/common/exception/user.exception';
 import { getProfileImagePath } from '@/common/enums/profile-image-code';
 import { UserStatisticsService } from './user-statistics.service';
 import { FilesService } from '@/files/files.service';
+import { UpdateFcmTokenResponseDto } from '@/users/dto/response/update-fcm-token-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -46,6 +47,21 @@ export class UsersService {
     }
 
     const response = new UpdateUserSettingsResponseDto(updatedUser);
+    return response;
+  }
+
+  async updateFcmToken(
+    userId: number,
+    fcmToken: string,
+  ): Promise<UpdateFcmTokenResponseDto> {
+    const user = await this.usersRepository.findUserById(userId);
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
+    await this.usersRepository.updateFcmToken(userId, fcmToken);
+
+    const response = new UpdateFcmTokenResponseDto(user);
     return response;
   }
 }

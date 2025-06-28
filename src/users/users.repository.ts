@@ -121,4 +121,8 @@ export class UsersRepository extends Repository<User> {
       select: selectOptions,
     });
   }
+
+  async updateFcmToken(id: number, fcmToken: string): Promise<void> {
+    await this.update(id, { fcmToken });
+  }
 }
