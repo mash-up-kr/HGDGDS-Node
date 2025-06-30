@@ -20,6 +20,13 @@ import {
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
+import {
+  GetReservationDetailResponse,
+  HostInfoDto,
+  CurrentUserInfoDto,
+} from './dto/response/get-reservation-detail.response';
+import { FilesService } from '@/files/files.service';
+import { getProfileImagePath } from '@/common/enums/profile-image-code';
 
 @Injectable()
 export class ReservationsService {
@@ -29,6 +36,7 @@ export class ReservationsService {
     @InjectRepository(UserReservation)
     private readonly userReservationRepository: Repository<UserReservation>,
     private readonly dataSource: DataSource,
+    private readonly filesService: FilesService,
   ) {}
 
   async createReservation(
@@ -321,5 +329,111 @@ export class ReservationsService {
     return userReservations.map(
       (elem) => new ReservationMemberDto(elem, hostId),
     );
+  }
+
+  async getReservationDetail(
+    reservationId: number,
+    currentUserId: number,
+  ): Promise<GetReservationDetailResponse> {
+    return await this.dataSource.transaction(async (manager) => {
+      const reservationRepo = manager.getRepository(Reservation);
+      const userReservationRepo = manager.getRepository(UserReservation);
+      const imageRepo = manager.getRepository(Image);
+
+      // 1. 예약 정보 조회 (호스트 정보 포함)
+      const reservation = await reservationRepo.findOne({
+        where: { id: reservationId },
+        relations: ['host'],
+      });
+
+      if (!reservation) {
+        throw new ReservationNotFoundException();
+      }
+
+      // 2. 현재 사용자의 예약 참가 정보 조회
+      const userReservation = await userReservationRepo.findOne({
+        where: {
+          reservation: { id: reservationId },
+          user: { id: currentUserId },
+        },
+        relations: ['user'],
+      });
+
+      // 3. 예약 이미지 조회
+      const images = await imageRepo.find({
+        where: {
+          parentType: ImageParentType.RESERVATION,
+          parentId: reservationId,
+        },
+      });
+
+      // 4. 참가자 수 조회
+      const participantCount = await userReservationRepo.count({
+        where: { reservation: { id: reservationId } },
+      });
+
+      // 5. 이미지 URL 생성
+      const imageUrls: string[] = [];
+      for (const image of images) {
+        try {
+          const url = await this.filesService.getAccessPresignedUrl(
+            image.s3FilePath,
+          );
+          imageUrls.push(url);
+        } catch (error) {
+          console.error(`이미지 URL 생성 실패: ${image.s3FilePath}`, error);
+        }
+      }
+
+      // 6. 호스트 프로필 이미지 URL 생성
+      const hostProfileImagePath = getProfileImagePath(
+        reservation.host.profileImageCode,
+      );
+      let hostProfileImageUrl: string;
+      try {
+        hostProfileImageUrl =
+          await this.filesService.getAccessPresignedUrl(hostProfileImagePath);
+      } catch (error) {
+        console.error('호스트 프로필 이미지 URL 생성 실패:', error);
+        hostProfileImageUrl = hostProfileImagePath;
+      }
+
+      // 7. 응답 데이터 구성
+      const maxParticipants = 30;
+      const isHost = reservation.host.id === currentUserId;
+      const canEdit = isHost && reservation.reservationDatetime > new Date();
+      const canJoin =
+        !userReservation && !isHost && participantCount < maxParticipants;
+
+      const hostInfo: HostInfoDto = {
+        hostId: reservation.host.id,
+        nickname: reservation.host.nickname,
+        profileImageName: hostProfileImageUrl,
+      };
+
+      const currentUserInfo: CurrentUserInfoDto = {
+        userId: currentUserId,
+        status: userReservation?.status || UserReservationStatus.DEFAULT,
+        isHost,
+        canEdit,
+        canJoin,
+      };
+
+      return new GetReservationDetailResponse(
+        reservation.id,
+        reservation.title,
+        reservation.category,
+        reservation.reservationDatetime.toISOString(),
+        reservation.description,
+        reservation.linkUrl,
+        imageUrls,
+        hostInfo,
+        currentUserInfo,
+        participantCount,
+        30, // 최대 참가자 수
+        reservation.createdAt.toISOString(),
+        reservation.updatedAt.toISOString(),
+      );
+    });
   }
 }
