@@ -21,7 +21,10 @@ import { CodesModule } from './codes/codes.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(typeormConfig),
+    TypeOrmModule.forRoot({
+      ...typeormConfig,
+      autoLoadEntities: true,
+    }),
     UsersModule,
     ReservationsModule,
     AuthModule,
