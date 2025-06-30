@@ -7,7 +7,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { PresignedUrlResponse } from './response/presigned.url.response';
-import { isDev } from '@/common';
 import { InternalServerException } from '@/common/exception/internal-server.exception';
 
 @Injectable()
@@ -21,12 +20,10 @@ export class FilesService {
   constructor() {
     this.s3 = new S3Client({
       region: this.region,
-      ...(isDev && {
-        credentials: {
-          accessKeyId: this.s3AccessKey,
-          secretAccessKey: this.s3SecretKey,
-        },
-      }),
+      credentials: {
+        accessKeyId: this.s3AccessKey,
+        secretAccessKey: this.s3SecretKey,
+      },
     });
   }
 
