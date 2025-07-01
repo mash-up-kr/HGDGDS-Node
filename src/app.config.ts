@@ -6,8 +6,13 @@ import {
 import { Reflector } from '@nestjs/core';
 import { CommonResponseInterceptor } from './common/interceptor';
 import { ValidationFailedException } from './common/exception/request-parsing.exception';
+import { TimezoneInterceptor } from './common/interceptor/timezone.interceptor';
 
 export function nestConfig(app: INestApplication) {
+  if (process.env.TZ) {
+    process.env.TZ = process.env.TZ || 'Asia/Seoul';
+  }
+
   const reflector = app.get<Reflector>(Reflector);
   app.useGlobalPipes(
     new ValidationPipe({
@@ -26,6 +31,7 @@ export function nestConfig(app: INestApplication) {
 
   app.useGlobalInterceptors(
     new CommonResponseInterceptor(),
+    new TimezoneInterceptor(),
     new ClassSerializerInterceptor(reflector),
   );
 }

@@ -365,8 +365,8 @@ export class ReservationsController {
         },
         participantCount: 4,
         maxParticipants: 6,
-        createdAt: '2025-06-13T10:00:00Z',
-        updatedAt: '2025-06-13T15:30:00Z',
+        createdAt: '2025-08-21T20:00:00+09:00',
+        updatedAt: '2025-08-21T20:00:00+09:00',
       },
     };
   }
