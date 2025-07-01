@@ -37,9 +37,9 @@ export class SignUpResponseDto {
 
   @ApiProperty({
     description: '계정 생성 시간',
-    example: '2024-06-03T10:00:00Z',
+    example: '2025-07-01T14:30:00+09:00',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     description: 'JWT 액세스 토큰',
@@ -53,7 +53,7 @@ export class SignUpResponseDto {
     this.nickname = user.nickname;
     this.profileImageCode = user.profileImageCode;
     this.profileImageUrl = profileImageUrl;
-    this.createdAt = user.createdAt.toISOString();
+    this.createdAt = user.createdAt;
     this.accessToken = accessToken;
   }
 }

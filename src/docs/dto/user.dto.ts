@@ -63,13 +63,13 @@ export class GetMyInfoDataDto {
 
   @ApiProperty({
     description: '계정 생성 시간',
-    example: '2024-01-15T10:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   createdAt: string;
 
   @ApiProperty({
     description: '마지막 업데이트 시간',
-    example: '2024-06-03T15:30:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   updatedAt: string;
 }

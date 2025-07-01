@@ -35,12 +35,12 @@ export class ReservationResultDto {
   description: string;
 
   @ApiProperty({
-    example: '2024-06-03T10:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   createdAt: string;
 
   @ApiProperty({
-    example: '2024-06-03T10:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   updatedAt: string;
 
