@@ -8,6 +8,10 @@ import { CommonResponseInterceptor } from './common/interceptor';
 import { ValidationFailedException } from './common/exception/request-parsing.exception';
 
 export function nestConfig(app: INestApplication) {
+  if (process.env.TZ) {
+    process.env.TZ = process.env.TZ || 'Asia/Seoul';
+  }
+
   const reflector = app.get<Reflector>(Reflector);
   app.useGlobalPipes(
     new ValidationPipe({
