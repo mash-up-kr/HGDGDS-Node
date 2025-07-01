@@ -18,6 +18,10 @@ export const typeormConfig: DataSourceOptions = {
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  extra: {
+    timezone: 'Asia/Seoul',
+    options: `-c timezone=Asia/Seoul`,
+  },
   ssl: isDev
     ? false
     : {

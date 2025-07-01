@@ -25,7 +25,7 @@ export class UpdateReservationResponse {
     description: '수정된 예약 일시',
     example: '2025-08-21T20:00:00+09:00',
   })
-  reservationDatetime: string;
+  reservationDatetime: Date;
 
   @ApiProperty({
     description: '수정된 설명',
@@ -62,15 +62,15 @@ export class UpdateReservationResponse {
 
   @ApiProperty({
     description: '생성 시간',
-    example: '2025-04-13T16:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     description: '수정 시간',
-    example: '2025-06-13T16:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  updatedAt: string;
+  updatedAt: Date;
 
   constructor(
     reservation: Reservation,
@@ -81,13 +81,13 @@ export class UpdateReservationResponse {
     this.reservationId = reservation.id;
     this.title = reservation.title;
     this.category = reservation.category;
-    this.reservationDatetime = reservation.reservationDatetime.toISOString();
+    this.reservationDatetime = reservation.reservationDatetime;
     this.description = reservation.description;
     this.linkUrl = reservation.linkUrl;
     this.imageUrls = imageUrls ?? [];
     this.hostId = host.id;
     this.participantCount = participantCount;
-    this.createdAt = reservation.createdAt.toISOString();
-    this.updatedAt = reservation.updatedAt.toISOString();
+    this.createdAt = reservation.createdAt;
+    this.updatedAt = reservation.updatedAt;
   }
 }

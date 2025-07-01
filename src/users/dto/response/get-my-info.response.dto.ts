@@ -78,15 +78,15 @@ export class GetMyInfoResponseDto {
 
   @ApiProperty({
     description: '계정 생성 시간',
-    example: '2024-06-03T10:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     description: '마지막 업데이트 시간',
-    example: '2024-06-27T15:30:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  updatedAt: string;
+  updatedAt: Date;
 
   constructor(
     user: User,
@@ -100,7 +100,7 @@ export class GetMyInfoResponseDto {
     this.statistics = statistics;
     this.reservationAlarmSetting = user.reservationAlarmSetting;
     this.kokAlarmSetting = user.kokAlarmSetting;
-    this.createdAt = user.createdAt.toISOString();
-    this.updatedAt = user.updatedAt.toISOString();
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 }

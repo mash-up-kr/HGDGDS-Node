@@ -40,9 +40,9 @@ export class UpdateUserSettingsResponseDto {
 
   @ApiProperty({
     description: '설정 변경 시각',
-    example: '2024-06-03T15:30:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  updatedAt: string;
+  updatedAt: Date;
 
   constructor(user: User) {
     this.userId = user.id;
@@ -51,6 +51,6 @@ export class UpdateUserSettingsResponseDto {
     this.profileImageName = user.profileImageCode;
     this.reservationAlarmSetting = user.reservationAlarmSetting;
     this.kokAlarmSetting = user.kokAlarmSetting;
-    this.updatedAt = user.updatedAt.toISOString();
+    this.updatedAt = user.updatedAt;
   }
 }
