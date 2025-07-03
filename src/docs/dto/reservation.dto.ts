@@ -30,7 +30,7 @@ export class CreateReservationResponse {
     description: '예약 일시',
     example: '2025-01-04T09:00:00+09:00',
   })
-  reservationDatetime: string;
+  reservationDatetime: Date;
 
   @ApiProperty({
     description: '외부 링크 URL',
@@ -61,20 +61,20 @@ export class CreateReservationResponse {
 
   @ApiProperty({
     description: '예약 생성 시간',
-    example: '2025-06-13T16:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
-  createdAt: string;
+  createdAt: Date;
 
   constructor(reservation: Reservation, host: User, imageUrls?: string[]) {
     this.reservationId = reservation.id;
     this.title = reservation.title;
     this.category = reservation.category;
-    this.reservationDatetime = reservation.reservationDatetime.toISOString();
+    this.reservationDatetime = reservation.reservationDatetime;
     this.linkUrl = reservation.linkUrl;
     this.description = reservation.description;
     this.imageUrls = imageUrls ?? [];
     this.hostId = host.id;
-    this.createdAt = reservation.createdAt.toISOString();
+    this.createdAt = reservation.createdAt;
   }
 }
 
@@ -145,7 +145,7 @@ export class JoinReservationDataDto {
 
   @ApiProperty({
     description: '참가 시간',
-    example: '2025-06-13T16:30:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   joinedAt: string;
 
@@ -475,13 +475,13 @@ export class ReservationDetailDto {
 
   @ApiProperty({
     description: '예약 생성 시간',
-    example: '2025-06-13T10:00:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   createdAt: string;
 
   @ApiProperty({
     description: '예약 수정 시간',
-    example: '2025-06-13T15:30:00Z',
+    example: '2025-08-21T20:00:00+09:00',
   })
   updatedAt: string;
 }

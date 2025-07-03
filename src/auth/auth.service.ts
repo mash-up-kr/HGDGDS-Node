@@ -20,7 +20,7 @@ export class AuthService {
   private async issueAccessToken(payload: JwtPayload) {
     return await this.jwtModule.signAsync(payload, {
       secret: process.env.JWT_SECRET ?? '',
-      expiresIn: process.env.JWT_EXPIRES_IN ?? '6h',
+      expiresIn: process.env.JWT_EXPIRE ?? '2y',
     });
   }
 
