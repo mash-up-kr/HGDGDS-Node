@@ -346,7 +346,7 @@ export class ReservationsController {
       data: {
         reservationId: reservationId,
         title: '오아시스를 직접 본다니',
-        category: '공연',
+        category: 'PERFORMANCE',
         reservationDatetime: '2025-08-21T19:00:00+09:00',
         description: '1순위로 E열 선정하기. 만약에 안되면 H도 괜찮아요',
         linkUrl: 'https://example.com/reservation-link',
