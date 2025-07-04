@@ -4,7 +4,7 @@ import { IsString } from 'class-validator';
 export class AccessPresignedUrlRequest {
   @ApiProperty({
     description: '접근할 파일 경로',
-    example: '/reservations/{reservation_id}/info/uuid.png',
+    example: '/reservations/info/uuid.png',
   })
   @IsString()
   filePath: string;
