@@ -26,7 +26,7 @@ export class CreateReservationRequest {
   @ApiProperty({
     enum: ReservationCategory,
     description: '예약 카테고리',
-    example: '맛집',
+    example: 'FOOD',
   })
   @IsEnum(ReservationCategory, {
     message: 'ReservationCategory enum이 아닙니다.',
