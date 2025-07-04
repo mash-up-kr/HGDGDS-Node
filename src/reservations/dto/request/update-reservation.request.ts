@@ -26,7 +26,7 @@ export class UpdateReservationRequest {
   @ApiProperty({
     enum: ReservationCategory,
     description: '예약 카테고리',
-    example: '공연',
+    example: 'PERFORMANCE',
     required: false,
   })
   @IsOptional()

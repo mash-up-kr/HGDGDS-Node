@@ -8,6 +8,7 @@ import { User } from '@/users/entities/user.entity';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { Image } from '@/images/entities/images.entity';
 import { UserReservation } from './entities/user-reservation.entity';
+import { FilesService } from '@/files/files.service';
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
@@ -48,12 +49,21 @@ describe('ReservationsService', () => {
       ),
     };
 
+    const mockFilesService = {
+      getUploadPresignedUrl: jest.fn().mockResolvedValue({
+        presignedUrl: 'https://example.com/upload',
+        filePath: 'test/file.jpg',
+      }),
+      getAccessPresignedUrl: jest.fn().mockResolvedValue('https://example.com/access'),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReservationsService,
         { provide: DataSource, useValue: mockDataSource },
         { provide: getRepositoryToken(Reservation), useValue: {} },
         { provide: getRepositoryToken(UserReservation), useValue: {} },
+        { provide: FilesService, useValue: mockFilesService },
       ],
     }).compile();
 

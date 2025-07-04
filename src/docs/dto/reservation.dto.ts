@@ -22,7 +22,7 @@ export class CreateReservationResponse {
 
   @ApiProperty({
     description: '예약 카테고리',
-    example: '맛집',
+    example: 'FOOD',
   })
   category: string;
 
@@ -113,7 +113,7 @@ export class ReservationSummaryDto {
 
   @ApiProperty({
     description: '예약 카테고리',
-    example: '맛집',
+    example: 'FOOD',
   })
   category: string;
 

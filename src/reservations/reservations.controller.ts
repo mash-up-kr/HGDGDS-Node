@@ -22,7 +22,6 @@ import {
 } from '@nestjs/swagger';
 import {
   CreateReservationResponse,
-  GetReservationDetailResponseDto,
   GetReservationsQueryDto,
   GetReservationsResponseDto,
 } from '../docs/dto/reservation.dto';
@@ -62,6 +61,7 @@ import {
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
+import { GetReservationDetailResponse } from './dto/response/get-reservation-detail.response';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -302,11 +302,10 @@ export class ReservationsController {
 
   @Get(':reservationId')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 상세 조회',
+    summary: '예약 상세 조회 ✅',
     description:
-      '특정 예약의 상세 정보를 조회합니다. 예약 정보만 포함하며, 멤버 정보는 별도 API에서 조회합니다.',
+      '특정 예약의 상세 정보를 조회합니다.예약에 초대 받았을때 유저에게 예약정보를 보여줄 때도 사용합니다. 예약 정보만 포함하며, 멤버 정보는 별도 API에서 조회합니다.',
   })
   @ApiParam({
     name: 'reservationId',
@@ -314,61 +313,17 @@ export class ReservationsController {
     example: 42,
     type: 'number',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 상세 조회 성공',
-    type: GetReservationDetailResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  @ApiResponse({
-    status: 404,
-    description: '예약을 찾을 수 없음',
-    type: ErrorResponseDto,
-    example: {
-      code: '2000',
-      message: '찾을 수 없는 예약입니다.',
-    },
-  })
-  getReservationDetail(
+  @CommonResponseDecorator(GetReservationDetailResponse)
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  async getReservationDetail(
     @Param('reservationId', ParseIntPipe) reservationId: number,
-  ): GetReservationDetailResponseDto {
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservationId: reservationId,
-        title: '오아시스를 직접 본다니',
-        category: '공연',
-        reservationDatetime: '2025-08-21T19:00:00+09:00',
-        description: '1순위로 E열 선정하기. 만약에 안되면 H도 괜찮아요',
-        linkUrl: 'https://example.com/reservation-link',
-        images: ['path/image1.jpg', 'path/image1.jpg', 'path/image1.jpg'],
-        host: {
-          hostId: 1,
-          nickname: '김파디',
-          profileImageName: 'IMG_001',
-        },
-        currentUser: {
-          userId: 123,
-          status: 'default',
-          isHost: false,
-          canEdit: false,
-          canJoin: false,
-        },
-        participantCount: 4,
-        maxParticipants: 6,
-        createdAt: '2025-08-21T20:00:00+09:00',
-        updatedAt: '2025-08-21T20:00:00+09:00',
-      },
-    };
+    @CurrentUser() user: User,
+  ): Promise<GetReservationDetailResponse> {
+    return await this.reservationsService.getReservationDetail(
+      reservationId,
+      user.id,
+    );
   }
 
   @Patch(':reservationId/users/status')
