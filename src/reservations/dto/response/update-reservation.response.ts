@@ -17,7 +17,7 @@ export class UpdateReservationResponse {
 
   @ApiProperty({
     description: '수정된 카테고리',
-    example: '공연',
+    example: 'PERFORMANCE',
   })
   category: string;
 

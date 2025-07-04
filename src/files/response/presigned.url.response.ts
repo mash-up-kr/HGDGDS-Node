@@ -9,7 +9,7 @@ export class PresignedUrlResponse {
 
   @ApiProperty({
     description: '파일 저장 경로',
-    example: '/reservations/{reservation_id}/info/uuid.png',
+    example: '/reservations/info/uuid.png',
   })
   filePath: string;
 
