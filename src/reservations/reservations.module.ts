@@ -6,10 +6,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Image } from '@/images/entities/images.entity';
 import { UserReservation } from './entities/user-reservation.entity';
 import { FilesService } from '@/files/files.service';
+import { ReservationResultsService } from './reservation-results.service';
+import { ReservationResult } from './entities/reservation-result.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reservation, Image, UserReservation])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Reservation,
+      Image,
+      UserReservation,
+      ReservationResult,
+    ]),
+  ],
   controllers: [ReservationsController],
-  providers: [ReservationsService, FilesService],
+  providers: [ReservationsService, FilesService, ReservationResultsService],
 })
 export class ReservationsModule {}

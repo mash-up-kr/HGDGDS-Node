@@ -54,7 +54,9 @@ describe('ReservationsService', () => {
         presignedUrl: 'https://example.com/upload',
         filePath: 'test/file.jpg',
       }),
-      getAccessPresignedUrl: jest.fn().mockResolvedValue('https://example.com/access'),
+      getAccessPresignedUrl: jest
+        .fn()
+        .mockResolvedValue('https://example.com/access'),
     };
 
     const module: TestingModule = await Test.createTestingModule({

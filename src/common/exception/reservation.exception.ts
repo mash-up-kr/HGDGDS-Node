@@ -55,3 +55,15 @@ export class UserReservationNotFoundException extends BaseException {
     super(HttpStatus.FORBIDDEN, ERROR_CODES.USER_RESERVATION_NOT_FOUND);
   }
 }
+
+export class ReservationNotDoneException extends BaseException {
+  constructor() {
+    super(HttpStatus.BAD_REQUEST, ERROR_CODES.RESERVATION_NOT_DONE);
+  }
+}
+
+export class ReservationResultAlreadyExistsException extends BaseException {
+  constructor() {
+    super(HttpStatus.BAD_REQUEST, ERROR_CODES.RESULT_ALREADY_EXIST);
+  }
+}

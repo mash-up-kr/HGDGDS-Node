@@ -1,10 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { BaseEntity } from '@/common/entity/base.entity';
 import { User } from '@/users/entities/user.entity';
 import { Reservation } from '@/reservations/entities/reservation.entity';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 
 @Entity({ name: 'user_reservations' })
+@Unique(['user', 'reservation'])
 export class UserReservation extends BaseEntity {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })

@@ -43,8 +43,10 @@ export class CreateReservationRequest {
   @ApiProperty({
     description: '외부 링크 URL',
     example: 'https://naver.me/xyz',
+    required: false,
   })
   @IsUrl()
+  @IsOptional()
   linkUrl?: string;
 
   @ApiProperty({
