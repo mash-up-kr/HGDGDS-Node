@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { FilesService } from '@/files/files.service';
+import { ReservationResultsService } from './reservation-results.service';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
@@ -16,6 +17,10 @@ describe('ReservationsController', () => {
         },
         {
           provide: FilesService,
+          useValue: {},
+        },
+        {
+          provide: ReservationResultsService,
           useValue: {},
         },
       ],
