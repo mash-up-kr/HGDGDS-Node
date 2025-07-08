@@ -9,14 +9,13 @@ import { ReservationCategory } from '@/common/enums/reservation-category';
 import { Image } from '@/images/entities/images.entity';
 import { UserReservation } from './entities/user-reservation.entity';
 import { FilesService } from '@/files/files.service';
-
+import { UsersRepository } from '@/users/users.repository';
+import { FirebaseService } from '@/firebase/firebase.service';
 describe('ReservationsService', () => {
   let service: ReservationsService;
   let dataSource: DataSource;
-
   beforeEach(async () => {
     const mockReservation = { id: 123 } as Reservation;
-
     const mockManager = {
       getRepository: jest.fn().mockImplementation((entity) => {
         if (entity === Reservation) {
@@ -48,7 +47,6 @@ describe('ReservationsService', () => {
         },
       ),
     };
-
     const mockFilesService = {
       getUploadPresignedUrl: jest.fn().mockResolvedValue({
         presignedUrl: 'https://example.com/upload',
@@ -58,21 +56,28 @@ describe('ReservationsService', () => {
         .fn()
         .mockResolvedValue('https://example.com/access'),
     };
-
+    const mockUsersRepository = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
+    const mockFirebaseService = {
+      // 필요한 mock 메서드 추가
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReservationsService,
         { provide: DataSource, useValue: mockDataSource },
         { provide: getRepositoryToken(Reservation), useValue: {} },
         { provide: getRepositoryToken(UserReservation), useValue: {} },
+        { provide: getRepositoryToken(User), useValue: {} },
         { provide: FilesService, useValue: mockFilesService },
+        { provide: UsersRepository, useValue: mockUsersRepository },
+        { provide: FirebaseService, useValue: mockFirebaseService },
       ],
     }).compile();
-
     service = module.get<ReservationsService>(ReservationsService);
     dataSource = module.get<DataSource>(DataSource);
   });
-
   it('should call transaction and save all entities', async () => {
     const dto: CreateReservationDto = {
       title: 'Test',
@@ -81,9 +86,7 @@ describe('ReservationsService', () => {
       host: { id: 1 } as User, // Mock User entity
       images: ['img1.png'],
     };
-
     await service.createReservation(dto);
-
     expect(dataSource.transaction).toHaveBeenCalled();
     // 추가적으로 mockManager.getRepository(Reservation).create/save 등이 호출됐는지 검증 가능
   });
