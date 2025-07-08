@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import { BaseException } from '../exception/base.exception';
 import { ErrorResponseDto } from '../dto/response/error-response.dto';
-import { getAppMode, getAppModeEnv } from '../utility';
+import { getAppMode } from '../utility';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -18,7 +18,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
     console.log(exception);
     if (exception instanceof BaseException) {
-      console.log('우앵');
       const status = exception.getStatus();
       const dto = exception.getResponse() as ErrorResponseDto;
       res.status(status).json(dto);
@@ -62,7 +61,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      code: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
     });
   }
