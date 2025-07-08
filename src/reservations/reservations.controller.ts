@@ -386,18 +386,18 @@ export class ReservationsController {
     );
   }
 
-  @Post('/:reservation_id/kok/:user_id')
+  @Post('/:reservationId/kok/:userId')
   @ApiOperation({
     summary: '콕찌르기 ✅',
     description: '같은 예약에 참여한 다른 사용자를 콕 찔러 알림을 보냅니다.',
   })
   @ApiParam({
-    name: 'reservation_id',
+    name: 'reservationId',
     description: '예약 ID',
     example: '12345',
   })
   @ApiParam({
-    name: 'user_id',
+    name: 'userId',
     description: '콕 찔림을 당할 사용자의 ID',
     example: '67890',
   })
@@ -405,8 +405,8 @@ export class ReservationsController {
   @ApiErrorResponse(ReservationNotFoundException)
   async kokReservation(
     @CurrentUser() currentUser: User,
-    @Param('reservation_id', ParseIntPipe) reservationId: number,
-    @Param('user_id', ParseIntPipe) targetUserId: number,
+    @Param('reservationId', ParseIntPipe) reservationId: number,
+    @Param('userId', ParseIntPipe) targetUserId: number,
   ): Promise<void> {
     await this.reservationsService.kokUserInReservation(
       reservationId,
