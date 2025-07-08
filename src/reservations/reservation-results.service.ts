@@ -33,7 +33,7 @@ export class ReservationResultsService {
     reservationId: number,
     user: User,
     reservationData: CreateReservationResultRequest,
-  ): Promise<CreateReservationResultDto> {
+  ): Promise<ReservationResult> {
     let userReservationStatus: UserReservationStatus;
     if (reservationData.status === ReservationResultStatus.FAIL) {
       userReservationStatus = UserReservationStatus.FAIL;
@@ -110,6 +110,6 @@ export class ReservationResultsService {
       throw error;
     }
 
-    return new CreateReservationResultDto(result, reservationData.images);
+    return result;
   }
 }
