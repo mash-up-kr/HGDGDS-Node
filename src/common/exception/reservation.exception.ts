@@ -67,3 +67,9 @@ export class ReservationResultAlreadyExistsException extends BaseException {
     super(HttpStatus.BAD_REQUEST, ERROR_CODES.RESULT_ALREADY_EXIST);
   }
 }
+
+export class ReservationAccessDeniedException extends BaseException {
+  constructor() {
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.RESERVATION_ACCESS_DENIED);
+  }
+}

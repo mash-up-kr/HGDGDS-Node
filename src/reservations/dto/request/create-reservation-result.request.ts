@@ -6,7 +6,6 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  IsUrl,
 } from 'class-validator';
 
 export class CreateReservationResultRequest {
@@ -22,7 +21,7 @@ export class CreateReservationResultRequest {
     type: [String],
     isArray: true,
     example: ['path/image1.jpg', 'path/image2.jpg'],
-    description: '결과 이미지 URL 배열',
+    description: 'filePath 배열',
   })
   @IsArray()
   @IsOptional()
@@ -33,14 +32,11 @@ export class CreateReservationResultRequest {
     example: '2025-01-04T09:00:00+09:00',
   })
   @IsDateString()
+  @IsOptional()
   successDatetime: Date;
 
   @ApiProperty()
   @IsString()
-  description?: string;
-
-  @ApiProperty()
-  @IsUrl()
   @IsOptional()
-  linkUrl?: string;
+  description?: string;
 }

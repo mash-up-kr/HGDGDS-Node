@@ -17,7 +17,7 @@ import {
   FirebaseServiceUnavailableException,
   NotificationSendFailedException,
   EmptyTokenListException,
-} from '@/firebase/exception/firebase.exception';
+} from '@/common/exception/firebase.exception';
 
 interface FirebaseError {
   code?: string;

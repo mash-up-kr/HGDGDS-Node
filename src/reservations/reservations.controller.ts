@@ -57,6 +57,7 @@ import {
   UserReservationNotFoundException,
   ReservationNotDoneException,
   ReservationResultAlreadyExistsException,
+  ReservationAccessDeniedException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
@@ -368,59 +369,66 @@ export class ReservationsController {
     example: '12345',
   })
   @ApiBody({ type: CreateReservationResultRequest })
+  @CommonResponseDecorator(CreateReservationResultDto)
   @ApiErrorResponse(ValidationFailedException)
   @ApiErrorResponse(ReservationNotFoundException)
   @ApiErrorResponse(UserReservationNotFoundException)
   @ApiErrorResponse(ReservationNotDoneException)
   @ApiErrorResponse(ReservationResultAlreadyExistsException)
-  addReservationResult(
+  async addReservationResult(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @Body() body: CreateReservationResultRequest,
     @CurrentUser() user: User,
-  ) {
-    return this.reservationResultService.createReservationResult(
+  ): Promise<CreateReservationResultDto> {
+    const result = await this.reservationResultService.createReservationResult(
       reservationId,
       user,
       body,
     );
+
+    const imageUrls: string[] = [];
+    if (body.images && body.images.length > 0) {
+      for (const image of body.images) {
+        try {
+          const url = await this.filesService.getAccessPresignedUrl(image);
+          imageUrls.push(url);
+        } catch (error) {
+          console.error(image + ' URL 생성 실패:', error);
+        }
+      }
+    }
+
+    return new CreateReservationResultDto(result, imageUrls);
   }
 
-  @Post('/:reservation_id/kok/:user_id')
+  @Post('/:reservationId/kok/:userId')
   @ApiOperation({
-    summary: '콕찌르기',
+    summary: '콕찌르기 ✅',
+    description: '같은 예약에 참여한 다른 사용자를 콕 찔러 알림을 보냅니다.',
   })
   @ApiParam({
-    name: 'reservation_id',
+    name: 'reservationId',
     description: '예약 ID',
     example: '12345',
   })
   @ApiParam({
-    name: 'user_id',
-    description: '사용자 ID',
+    name: 'userId',
+    description: '콕 찔림을 당할 사용자의 ID',
     example: '67890',
   })
-  @CommonResponseDecorator()
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 24시간 이내에만 콕찌르기 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  kokReservation() {}
+  @ApiErrorResponse(ReservationAccessDeniedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  async kokReservation(
+    @CurrentUser() currentUser: User,
+    @Param('reservationId', ParseIntPipe) reservationId: number,
+    @Param('userId', ParseIntPipe) targetUserId: number,
+  ): Promise<void> {
+    await this.reservationsService.kokUserInReservation(
+      reservationId,
+      currentUser,
+      targetUserId,
+    );
+  }
 
   @Get(':reservationId/results')
   @ApiOperation({
