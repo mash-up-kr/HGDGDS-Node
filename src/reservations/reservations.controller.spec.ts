@@ -7,7 +7,7 @@ import { User } from '@/users/entities/user.entity';
 import { UserRole } from '@/common/enums/user-role';
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import {
-  NotMemberOfReservationException,
+  ReservationAccessDeniedException,
   ReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
 import { UserNotFoundException } from '@/common/exception/user.exception';
@@ -91,9 +91,9 @@ describe('ReservationsController', () => {
       );
     });
 
-    it('실패: 예약 멤버가 아닐 경우 NotMemberOfReservationException을 그대로 던져야 한다', async () => {
-      // Arrange: 서비스가 NotMemberOfReservationException을 던지도록 설정
-      const expectedError = new NotMemberOfReservationException();
+    it('실패: 예약 멤버가 아닐 경우 ReservationAccessDeniedException 그대로 던져야 한다', async () => {
+      // Arrange: 서비스가 ReservationAccessDeniedException 던지도록 설정
+      const expectedError = new ReservationAccessDeniedException();
       jest
         .spyOn(service, 'kokUserInReservation')
         .mockRejectedValue(expectedError);

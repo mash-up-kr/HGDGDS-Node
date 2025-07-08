@@ -57,7 +57,7 @@ import {
   UserReservationNotFoundException,
   ReservationNotDoneException,
   ReservationResultAlreadyExistsException,
-  NotMemberOfReservationException,
+  ReservationAccessDeniedException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
@@ -401,7 +401,7 @@ export class ReservationsController {
     description: '콕 찔림을 당할 사용자의 ID',
     example: '67890',
   })
-  @ApiErrorResponse(NotMemberOfReservationException)
+  @ApiErrorResponse(ReservationAccessDeniedException)
   @ApiErrorResponse(ReservationNotFoundException)
   async kokReservation(
     @CurrentUser() currentUser: User,
