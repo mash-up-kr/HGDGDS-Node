@@ -109,6 +109,10 @@ export const ERROR_CODES = {
     code: 2019,
     message: '이미 결과가 등록된 예약입니다.',
   },
+  NOT_MEMBER_OF_RESERVATION: {
+    code: 2020,
+    message: '본인이 속한 예약만 접근 가능한 기능입니다.',
+  },
   // Firebase/알림 관련 (3000번대)
   INVALID_FCM_TOKEN: {
     code: 3000,
@@ -141,6 +145,10 @@ export const ERROR_CODES = {
   FIREBASE_CONFIG_PARSE_FAILED: {
     code: 3007,
     message: 'Firebase 설정 파일 파싱에 실패했습니다.',
+  },
+  KOK_TIME_NOT_REACHED: {
+    code: 3008,
+    message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
   },
   // 시스템 에러 (9000번대)
   INTERNAL_SERVER_ERROR: {

@@ -4,7 +4,7 @@ import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { FcmTestDto } from '@/firebase/dto/firebase-test.dto';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
 import { ApiErrorResponse } from '@/common/decorator/api-error-response.decorator';
-import { InvalidFcmTokenException } from '@/firebase/exception/firebase.exception';
+import { InvalidFcmTokenException } from '@/common/exception/firebase.exception';
 
 @ApiTags('firebase')
 @Controller('firebase')
