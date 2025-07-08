@@ -15,7 +15,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiParam,
   ApiQuery,
   ApiBody,
@@ -63,8 +62,12 @@ import { ValidationFailedException } from '@/common/exception/request-parsing.ex
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
 import { GetReservationDetailResponse } from './dto/response/get-reservation-detail.response';
-import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 import { ReservationResultsService } from './reservation-results.service';
+import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
+import { MOCK_RESERVATIONS } from './mock-reservations.data';
+import { OrderCondition } from '@/common/dto/request/pagination.dto';
+import { GetReservationResultsResponseDto } from './dto/response/get-reservation-results.response.dto';
+import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -145,9 +148,8 @@ export class ReservationsController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({
-    summary: '예약 목록 - 예약정보',
+    summary: '예약 목록 - 예약정보 (💖목데이터 추가)',
     description:
       '현재 시간 기준으로 예약 목록을 조회합니다. before: 지난 예약, after: 예정된 예약',
   })
@@ -175,42 +177,34 @@ export class ReservationsController {
   getReservations(
     @Query() query: GetReservationsQueryDto,
   ): GetReservationsResponseDto {
-    const mockReservations = [
-      {
-        reservationId: 1,
-        title: '매쉬업 아구찜 직팬 모임',
-        category: '운동경기',
-        reservationDatetime: '2025-07-11T19:00:00+09:00',
-        participantCount: 3,
-        maxParticipants: 20,
-        hostId: 1,
-        hostNickname: '서연',
-        images: ['path/image1.jpg'],
-        userStatus: 'default',
-        isHost: false,
-      },
-      {
-        reservationId: 2,
-        title: '매쉬업 아구찜 직팬 모임',
-        category: '운동경기',
-        reservationDatetime: '2025-07-11T19:00:00+09:00',
-        participantCount: 3,
-        maxParticipants: 20,
-        hostId: 2,
-        hostNickname: '서연',
-        images: ['path/image1.jpg'],
-        userStatus: 'default',
-        isHost: true,
-      },
-    ];
-
-    const metadata = new PaginationMetadata(query.page, query.limit, 10);
-
+    // 오프셋 방식으로 목데이터 반환
+    const allReservations = MOCK_RESERVATIONS;
+    // 정렬
+    const sorted = [...allReservations].sort((a, b) => {
+      if (query.order === OrderCondition.ASC) {
+        return (
+          new Date(a.reservationDatetime).getTime() -
+          new Date(b.reservationDatetime).getTime()
+        );
+      } else {
+        return (
+          new Date(b.reservationDatetime).getTime() -
+          new Date(a.reservationDatetime).getTime()
+        );
+      }
+    });
+    const offset = (query.page - 1) * query.limit;
+    const pagedReservations = sorted.slice(offset, offset + query.limit);
+    const metadata = new PaginationMetadata(
+      query.page,
+      query.limit,
+      allReservations.length,
+    );
     return {
       code: '200',
       message: 'OK',
       data: {
-        reservations: mockReservations,
+        reservations: pagedReservations,
         metadata: metadata,
       },
     };
@@ -432,14 +426,14 @@ export class ReservationsController {
 
   @Get(':reservationId/results')
   @ApiOperation({
-    summary: '예약 결과 목록 조회',
+    summary: '구성원들의 예약 결과 목록 조회 (호스트 포함)(💖목데이터 추가))',
   })
   @ApiParam({
     name: 'reservationId',
     description: '예약 ID',
     example: '12345',
   })
-  @CommonResponseDecorator([CreateReservationResultDto])
+  @CommonResponseDecorator(GetReservationResultsResponseDto)
   @ApiResponse({
     status: 404,
     description: '본인이 속한 예약만 접근 가능',
@@ -460,7 +454,69 @@ export class ReservationsController {
       },
     },
   })
-  addReservationResults() {}
+  getReservationResults() {
+    // host 정보와 results 배열을 분리해서 반환
+    const host = {
+      reservationResultId: 1,
+      reservationId: 1,
+      userId: 1,
+      status: ReservationResultStatus.SUCCESS,
+      images: ['http://abc.com/image1.jpg'],
+      successDatetime: new Date('2025-07-11T19:00:00+09:00'),
+      description: '성공적으로 예약을 완료했습니다.',
+      createdAt: new Date('2025-07-11T19:00:00+09:00'),
+      updatedAt: new Date('2025-07-11T19:00:00+09:00'),
+    };
+    return {
+      host,
+      results: [
+        {
+          reservationResultId: 5,
+          reservationId: 1,
+          userId: 5,
+          status: ReservationResultStatus.SUCCESS,
+          images: ['http://abc.com/image1.jpg'],
+          successDatetime: new Date('2025-07-11T19:00:00+09:00'),
+          description: '성공적으로 예약을 완료했습니다.',
+          createdAt: new Date('2025-07-11T19:00:00+09:00'),
+          updatedAt: new Date('2025-07-11T19:00:00+09:00'),
+        },
+        {
+          reservationResultId: 2,
+          reservationId: 1,
+          userId: 2,
+          status: ReservationResultStatus.FAIL,
+          images: ['http://abc.com/image2.jpg'],
+          successDatetime: new Date('2025-07-11T19:00:00+09:00'),
+          description: '참여하지 못했습니다.',
+          createdAt: new Date('2025-07-11T19:00:00+09:00'),
+          updatedAt: new Date('2025-07-11T19:00:00+09:00'),
+        },
+        {
+          reservationResultId: 3,
+          reservationId: 1,
+          userId: 3,
+          status: ReservationResultStatus.HALF_SUCCESS,
+          images: ['http://abc.com/image3.jpg'],
+          successDatetime: new Date('2025-07-11T19:00:00+09:00'),
+          description: '절반만 성공했습니다.',
+          createdAt: new Date('2025-07-11T19:00:00+09:00'),
+          updatedAt: new Date('2025-07-11T19:00:00+09:00'),
+        },
+        {
+          reservationResultId: 4,
+          reservationId: 1,
+          userId: 4,
+          status: ReservationResultStatus.SUCCESS,
+          images: ['http://abc.com/image4.jpg'],
+          successDatetime: new Date('2025-07-11T19:00:00+09:00'),
+          description: '다시 성공!',
+          createdAt: new Date('2025-07-11T19:00:00+09:00'),
+          updatedAt: new Date('2025-07-11T19:00:00+09:00'),
+        },
+      ],
+    };
+  }
 
   @Get(':reservationId/results/rival_count')
   @ApiOperation({

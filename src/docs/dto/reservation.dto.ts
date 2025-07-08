@@ -91,15 +91,6 @@ export class GetReservationsQueryDto extends BasePaginationQueryDto {
   @IsOptional()
   @IsIn(['before', 'after'])
   readonly status?: 'before' | 'after';
-
-  @ApiProperty({
-    description: '커서 (마지막 조회된 예약 ID)',
-    required: false,
-    example: 4,
-    type: 'number',
-  })
-  @IsOptional()
-  readonly cursor?: number;
 }
 
 export class ReservationItemDto {
