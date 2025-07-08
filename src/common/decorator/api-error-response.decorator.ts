@@ -3,9 +3,9 @@ import { ApiResponse } from '@nestjs/swagger';
 import { ErrorResponseDto } from '../dto/response/error-response.dto';
 import { BaseException } from '../exception/base.exception';
 
-export function ApiErrorResponse(
-  ExceptionClass: new (...args: any[]) => BaseException,
-  ...args: any[]
+export function ApiErrorResponse<T extends unknown[]>(
+  ExceptionClass: new (...args: T) => BaseException,
+  ...args: T
 ) {
   const exception = new ExceptionClass(...args);
   const status = exception.getStatus();
