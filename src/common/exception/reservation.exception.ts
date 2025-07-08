@@ -68,8 +68,8 @@ export class ReservationResultAlreadyExistsException extends BaseException {
   }
 }
 
-export class NotMemberOfReservationException extends BaseException {
+export class ReservationAccessDeniedException extends BaseException {
   constructor() {
-    super(HttpStatus.FORBIDDEN, ERROR_CODES.NOT_MEMBER_OF_RESERVATION);
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.RESERVATION_ACCESS_DENIED);
   }
 }

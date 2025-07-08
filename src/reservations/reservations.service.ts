@@ -16,7 +16,7 @@ import {
   InvalidTimeUpdateException,
   ReservationTimeNotReachedException,
   UserReservationNotFoundException,
-  NotMemberOfReservationException,
+  ReservationAccessDeniedException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
@@ -474,7 +474,7 @@ export class ReservationsService {
     const isPokedMember = memberships.some((m) => m.user.id === pokedUserId);
 
     if (!isPokerMember || !isPokedMember) {
-      throw new NotMemberOfReservationException();
+      throw new ReservationAccessDeniedException();
     }
 
     // 3. 콕찔림 당하는 사용자의 정보 (FCM 토큰) 조회
