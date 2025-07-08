@@ -467,6 +467,7 @@ export class ReservationsService {
         { reservation: { id: reservationId }, user: { id: pokerUser.id } },
         { reservation: { id: reservationId }, user: { id: pokedUserId } },
       ],
+      relations: ['user'],
     });
 
     const isPokerMember = memberships.some((m) => m.user.id === pokerUser.id);
@@ -487,7 +488,7 @@ export class ReservationsService {
       throw new EmptyTokenListException();
     }
     // 4. 알림 메시지 생성 및 전송
-    const title = '${pokerUser.nickname}님이 콕 찔렀어요';
+    const title = `${pokerUser.nickname}님이 콕 찔렀어요`;
     const message = `${reservation.title} 예약을 준비하세요`;
 
     try {
