@@ -360,7 +360,7 @@ export class ReservationsController {
 
   @Post(':reservationId/results')
   @ApiOperation({
-    summary: '예약 결과 등록',
+    summary: '예약 결과 등록 ✅',
   })
   @ApiParam({
     name: 'reservationId',
