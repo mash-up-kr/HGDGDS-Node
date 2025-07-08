@@ -68,12 +68,6 @@ export class ReservationResultAlreadyExistsException extends BaseException {
   }
 }
 
-export class KokNotAvailableException extends BaseException {
-  constructor() {
-    super(HttpStatus.BAD_REQUEST, ERROR_CODES.KOK_TIME_NOT_REACHED);
-  }
-}
-
 export class NotMemberOfReservationException extends BaseException {
   constructor() {
     super(HttpStatus.FORBIDDEN, ERROR_CODES.NOT_MEMBER_OF_RESERVATION);
