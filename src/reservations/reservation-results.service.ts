@@ -98,12 +98,12 @@ export class ReservationResultsService {
         return savedReservationResult;
       });
     } catch (error) {
+      const UNIQUE_VIOLATION = '23505';
+
       if (
         error instanceof QueryFailedError &&
-        typeof error === 'object' &&
-        error !== null &&
         'code' in error &&
-        (error as { code?: unknown }).code === '23505'
+        (error as QueryFailedError & { code: string }).code === UNIQUE_VIOLATION
       ) {
         throw new ReservationResultAlreadyExistsException();
       }

@@ -25,6 +25,7 @@ export class CreateReservationResultRequest {
     description: '결과 이미지 URL 배열',
   })
   @IsArray()
+  @IsOptional()
   images: string[] | null;
 
   @ApiProperty({
