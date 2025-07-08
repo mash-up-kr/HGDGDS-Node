@@ -67,6 +67,7 @@ import { ReservationResultStatus } from '@/common/enums/reservation-result-statu
 import { MOCK_RESERVATIONS } from './mock-reservations.data';
 import { OrderCondition } from '@/common/dto/request/pagination.dto';
 import { GetReservationResultsResponseDto } from './dto/response/get-reservation-results.response.dto';
+import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 
 @ApiAuth()
 @ApiTags('예약')
