@@ -57,6 +57,7 @@ import {
   UserReservationNotFoundException,
   ReservationNotDoneException,
   ReservationResultAlreadyExistsException,
+  NotMemberOfReservationException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
@@ -387,7 +388,8 @@ export class ReservationsController {
 
   @Post('/:reservation_id/kok/:user_id')
   @ApiOperation({
-    summary: '콕찌르기',
+    summary: '콕찌르기 ✅',
+    description: '같은 예약에 참여한 다른 사용자를 콕 찔러 알림을 보냅니다.',
   })
   @ApiParam({
     name: 'reservation_id',
@@ -396,31 +398,22 @@ export class ReservationsController {
   })
   @ApiParam({
     name: 'user_id',
-    description: '사용자 ID',
+    description: '콕 찔림을 당할 사용자의 ID',
     example: '67890',
   })
-  @CommonResponseDecorator()
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 24시간 이내에만 콕찌르기 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 24시간 이내에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  kokReservation() {}
+  @ApiErrorResponse(NotMemberOfReservationException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  async kokReservation(
+    @CurrentUser() currentUser: User,
+    @Param('reservation_id', ParseIntPipe) reservationId: number,
+    @Param('user_id', ParseIntPipe) targetUserId: number,
+  ): Promise<void> {
+    await this.reservationsService.kokUserInReservation(
+      reservationId,
+      currentUser,
+      targetUserId,
+    );
+  }
 
   @Get(':reservationId/results')
   @ApiOperation({

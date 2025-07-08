@@ -16,6 +16,7 @@ import {
   InvalidTimeUpdateException,
   ReservationTimeNotReachedException,
   UserReservationNotFoundException,
+  NotMemberOfReservationException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
@@ -27,6 +28,13 @@ import {
 } from './dto/response/get-reservation-detail.response';
 import { FilesService } from '@/files/files.service';
 import { getProfileImagePath } from '@/common/enums/profile-image-code';
+import { User } from '@/users/entities/user.entity';
+import { FirebaseService } from '@/firebase/firebase.service';
+import {
+  EmptyTokenListException,
+  NotificationSendFailedException,
+} from '@/common/exception/firebase.exception';
+import { UserNotFoundException } from '@/common/exception/user.exception';
 
 @Injectable()
 export class ReservationsService {
@@ -35,8 +43,11 @@ export class ReservationsService {
     private readonly reservationRepository: Repository<Reservation>,
     @InjectRepository(UserReservation)
     private readonly userReservationRepository: Repository<UserReservation>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly dataSource: DataSource,
     private readonly filesService: FilesService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async createReservation(
@@ -435,5 +446,58 @@ export class ReservationsService {
         reservation.updatedAt.toISOString(),
       );
     });
+  }
+  async kokUserInReservation(
+    reservationId: number,
+    pokerUser: User,
+    pokedUserId: number,
+  ): Promise<void> {
+    // 1. 예약 정보 조회
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId },
+    });
+    if (!reservation) {
+      throw new ReservationNotFoundException();
+    }
+
+    // 3. 유효성 검사 (멤버)
+    // 콕찌르는 사람(poker)과 찔리는 사람(poked)이 모두 해당 예약의 멤버인지 확인
+    const memberships = await this.userReservationRepository.find({
+      where: [
+        { reservation: { id: reservationId }, user: { id: pokerUser.id } },
+        { reservation: { id: reservationId }, user: { id: pokedUserId } },
+      ],
+    });
+
+    const isPokerMember = memberships.some((m) => m.user.id === pokerUser.id);
+    const isPokedMember = memberships.some((m) => m.user.id === pokedUserId);
+
+    if (!isPokerMember || !isPokedMember) {
+      throw new NotMemberOfReservationException();
+    }
+
+    // 3. 콕찔림 당하는 사용자의 정보 (FCM 토큰) 조회
+    const pokedUser = await this.userRepository.findOne({
+      where: { id: pokedUserId },
+    });
+    if (!pokedUser) {
+      throw new UserNotFoundException();
+    }
+    if (!pokedUser.fcmToken) {
+      throw new EmptyTokenListException();
+    }
+    // 4. 알림 메시지 생성 및 전송
+    const title = '${pokerUser.nickname}님이 콕 찔렀어요';
+    const message = `${reservation.title} 예약을 준비하세요`;
+
+    try {
+      await this.firebaseService.sendNotification(
+        pokedUser.fcmToken,
+        title,
+        message,
+      );
+    } catch (error) {
+      throw new NotificationSendFailedException();
+    }
   }
 }
