@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, In } from 'typeorm';
 import { UserReservation } from '@/reservations/entities/user-reservation.entity';
-import { ReservationResultEntity } from '@/reservations/entities/reservation-result.entity';
+import { ReservationResult } from '@/reservations/entities/reservation-result.entity';
 import { UserStatisticsDto } from '../dto/response/get-my-info.response.dto';
+import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
 
 @Injectable()
 export class UserStatisticsService {
   constructor(
     @InjectRepository(UserReservation)
     private readonly userReservationRepository: Repository<UserReservation>,
-    @InjectRepository(ReservationResultEntity)
-    private readonly reservationResultRepository: Repository<ReservationResultEntity>,
+    @InjectRepository(ReservationResult)
+    private readonly reservationResultRepository: Repository<ReservationResult>,
   ) {}
 
   /**
@@ -30,7 +31,10 @@ export class UserStatisticsService {
       const successReservations = await this.reservationResultRepository.count({
         where: {
           user: { id: userId },
-          isSuccess: true,
+          status: In([
+            ReservationResultStatus.SUCCESS,
+            ReservationResultStatus.HALF_SUCCESS,
+          ]),
           deletedAt: IsNull(),
         },
       });
