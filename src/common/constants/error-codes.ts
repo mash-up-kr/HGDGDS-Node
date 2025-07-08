@@ -146,6 +146,10 @@ export const ERROR_CODES = {
     code: 3007,
     message: 'Firebase 설정 파일 파싱에 실패했습니다.',
   },
+  SELF_MESSAGE_NOT_ALLOWED: {
+    code: 3008,
+    message: '자기 자신을 콕 찌를 수 없습니다.',
+  },
   // 시스템 에러 (9000번대)
   INTERNAL_SERVER_ERROR: {
     code: 9000,

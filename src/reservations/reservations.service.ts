@@ -33,6 +33,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
 import {
   EmptyTokenListException,
   NotificationSendFailedException,
+  SelfMessageNotAllowedException,
 } from '@/common/exception/firebase.exception';
 import { UserNotFoundException } from '@/common/exception/user.exception';
 
@@ -458,6 +459,10 @@ export class ReservationsService {
     });
     if (!reservation) {
       throw new ReservationNotFoundException();
+    }
+    // 2. 유효성 검사 (자기 자신 콕 찌르기 여부)
+    if (pokerUser.id === pokedUserId) {
+      throw new SelfMessageNotAllowedException();
     }
 
     // 3. 유효성 검사 (멤버)
