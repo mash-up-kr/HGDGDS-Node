@@ -496,7 +496,7 @@ export class ReservationsService {
         title,
         message,
       );
-    } catch (error) {
+    } catch {
       throw new NotificationSendFailedException();
     }
   }

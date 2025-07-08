@@ -6,7 +6,7 @@ import {
   FirebaseServiceUnavailableException,
   NotificationSendFailedException,
   EmptyTokenListException,
-} from '@/firebase/exception/firebase.exception';
+} from '@/common/exception/firebase.exception';
 
 const mockSend = jest.fn();
 const mockSendEachForMulticast = jest.fn();
