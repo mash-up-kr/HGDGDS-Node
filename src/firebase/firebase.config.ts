@@ -1,7 +1,7 @@
 import {
   FirebaseConfigNotFoundException,
   FirebaseConfigParseException,
-} from '@/firebase/exception/firebase.exception';
+} from '@/common/exception/firebase.exception';
 
 // Firebase 서비스 계정 타입 정의
 interface ServiceAccount {

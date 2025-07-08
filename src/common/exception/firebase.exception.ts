@@ -67,3 +67,9 @@ export class FirebaseConfigParseException extends BaseException {
     );
   }
 }
+
+export class SelfMessageNotAllowedException extends BaseException {
+  constructor() {
+    super(HttpStatus.BAD_REQUEST, ERROR_CODES.SELF_MESSAGE_NOT_ALLOWED);
+  }
+}

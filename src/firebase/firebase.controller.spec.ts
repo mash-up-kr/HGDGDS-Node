@@ -4,7 +4,7 @@ import { FirebaseService } from './firebase.service';
 import { FcmTestDto } from '@/firebase/dto/firebase-test.dto';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { InvalidFcmTokenException } from '@/firebase/exception/firebase.exception';
+import { InvalidFcmTokenException } from '@/common/exception/firebase.exception';
 
 describe('FirebaseController', () => {
   let controller: FirebaseController;

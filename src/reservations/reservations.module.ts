@@ -8,6 +8,8 @@ import { UserReservation } from './entities/user-reservation.entity';
 import { FilesService } from '@/files/files.service';
 import { ReservationResultsService } from './reservation-results.service';
 import { ReservationResult } from './entities/reservation-result.entity';
+import { User } from '@/users/entities/user.entity';
+import { FirebaseService } from '@/firebase/firebase.service';
 
 @Module({
   imports: [
@@ -16,9 +18,15 @@ import { ReservationResult } from './entities/reservation-result.entity';
       Image,
       UserReservation,
       ReservationResult,
+      User,
     ]),
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService, FilesService, ReservationResultsService],
+  providers: [
+    ReservationsService,
+    FilesService,
+    ReservationResultsService,
+    FirebaseService,
+  ],
 })
 export class ReservationsModule {}
