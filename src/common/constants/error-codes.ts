@@ -109,10 +109,6 @@ export const ERROR_CODES = {
     code: 2019,
     message: '이미 결과가 등록된 예약입니다.',
   },
-  NOT_MEMBER_OF_RESERVATION: {
-    code: 2020,
-    message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-  },
   // Firebase/알림 관련 (3000번대)
   INVALID_FCM_TOKEN: {
     code: 3000,
