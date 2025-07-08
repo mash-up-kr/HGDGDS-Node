@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { UserReservation } from '@/reservations/entities/user-reservation.entity';
-import { ReservationResultEntity } from '@/reservations/entities/reservation-result.entity';
+import { ReservationResult } from '@/reservations/entities/reservation-result.entity';
 import { FilesModule } from '@/files/files.module';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
@@ -12,7 +12,7 @@ import { UserStatisticsService } from './services/user-statistics.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserReservation, ReservationResultEntity]),
+    TypeOrmModule.forFeature([User, UserReservation, ReservationResult]),
     FilesModule,
   ],
   controllers: [UsersController],

@@ -31,10 +31,8 @@ import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
 import { CommonResponseDecorator } from '@/common/decorator/common.response.decorator';
-import { CreateReservationResultDto } from './dto/request/create.reservation.result.dto';
-import { ReservationResultDto } from './dto/response/result.dto';
+import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
 import { RivalResponse } from './dto/response/rival.response';
-import { CommonResponse } from '@/common/response/common.response';
 import { CreateReservationRequest } from './dto/request/create-reservation.request';
 import { UpdateReservationRequest } from './dto/request/update-reservation.request';
 import { UpdateReservationResponse } from './dto/response/update-reservation.response';
@@ -57,11 +55,15 @@ import {
   InvalidTimeUpdateException,
   ReservationTimeNotReachedException,
   UserReservationNotFoundException,
+  ReservationNotDoneException,
+  ReservationResultAlreadyExistsException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
 import { ReservationMemberDto } from './dto/reservation-member.dto';
 import { GetReservationDetailResponse } from './dto/response/get-reservation-detail.response';
+import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
+import { ReservationResultsService } from './reservation-results.service';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -72,6 +74,7 @@ export class ReservationsController {
   constructor(
     private readonly reservationsService: ReservationsService,
     private readonly filesService: FilesService,
+    private readonly reservationResultService: ReservationResultsService,
   ) {}
 
   @Post()
@@ -364,31 +367,22 @@ export class ReservationsController {
     description: '예약 ID',
     example: '12345',
   })
-  @ApiBody({ type: CreateReservationResultDto })
-  @ApiResponse({
-    status: 404,
-    description: '본인이 속한 예약만 접근 가능',
-    schema: {
-      example: {
-        code: 2009,
-        message: '본인이 속한 예약만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: '예약시간 이후에만 결과 등록 가능',
-    schema: {
-      example: {
-        code: 2010,
-        message: '예약시간 이후에만 접근 가능한 기능입니다.',
-      },
-    },
-  })
-  addReservationResult() {
-    return new CommonResponse(200, 'OK', {
-      message: '예약 결과가 등록되었습니다.',
-    });
+  @ApiBody({ type: CreateReservationResultRequest })
+  @ApiErrorResponse(ValidationFailedException)
+  @ApiErrorResponse(ReservationNotFoundException)
+  @ApiErrorResponse(UserReservationNotFoundException)
+  @ApiErrorResponse(ReservationNotDoneException)
+  @ApiErrorResponse(ReservationResultAlreadyExistsException)
+  addReservationResult(
+    @Param('reservationId', ParseIntPipe) reservationId: number,
+    @Body() body: CreateReservationResultRequest,
+    @CurrentUser() user: User,
+  ) {
+    return this.reservationResultService.createReservationResult(
+      reservationId,
+      user,
+      body,
+    );
   }
 
   @Post('/:reservation_id/kok/:user_id')
@@ -437,7 +431,7 @@ export class ReservationsController {
     description: '예약 ID',
     example: '12345',
   })
-  @CommonResponseDecorator([ReservationResultDto])
+  @CommonResponseDecorator([CreateReservationResultDto])
   @ApiResponse({
     status: 404,
     description: '본인이 속한 예약만 접근 가능',
