@@ -16,6 +16,7 @@ export class ReservationResult extends BaseEntity {
   user: User;
 
   @Column({
+    type: 'enum',
     enum: ReservationResultStatus,
     default: ReservationResultStatus.SUCCESS,
   })
