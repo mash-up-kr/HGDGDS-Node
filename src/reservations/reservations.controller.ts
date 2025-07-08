@@ -369,21 +369,36 @@ export class ReservationsController {
     example: '12345',
   })
   @ApiBody({ type: CreateReservationResultRequest })
+  @CommonResponseDecorator(CreateReservationResultDto)
   @ApiErrorResponse(ValidationFailedException)
   @ApiErrorResponse(ReservationNotFoundException)
   @ApiErrorResponse(UserReservationNotFoundException)
   @ApiErrorResponse(ReservationNotDoneException)
   @ApiErrorResponse(ReservationResultAlreadyExistsException)
-  addReservationResult(
+  async addReservationResult(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @Body() body: CreateReservationResultRequest,
     @CurrentUser() user: User,
-  ) {
-    return this.reservationResultService.createReservationResult(
+  ): Promise<CreateReservationResultDto> {
+    const result = await this.reservationResultService.createReservationResult(
       reservationId,
       user,
       body,
     );
+
+    const imageUrls: string[] = [];
+    if (body.images && body.images.length > 0) {
+      for (const image of body.images) {
+        try {
+          const url = await this.filesService.getAccessPresignedUrl(image);
+          imageUrls.push(url);
+        } catch (error) {
+          console.error(image + ' URL 생성 실패:', error);
+        }
+      }
+    }
+
+    return new CreateReservationResultDto(result, imageUrls);
   }
 
   @Post('/:reservationId/kok/:userId')

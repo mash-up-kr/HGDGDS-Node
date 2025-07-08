@@ -8,7 +8,6 @@ import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { FilesService } from '@/files/files.service';
 import { ReservationResult } from './entities/reservation-result.entity';
 import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
-import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
 import { Reservation } from './entities/reservation.entity';
 import { User } from '@/users/entities/user.entity';
@@ -33,7 +32,7 @@ export class ReservationResultsService {
     reservationId: number,
     user: User,
     reservationData: CreateReservationResultRequest,
-  ): Promise<CreateReservationResultDto> {
+  ): Promise<ReservationResult> {
     let userReservationStatus: UserReservationStatus;
     if (reservationData.status === ReservationResultStatus.FAIL) {
       userReservationStatus = UserReservationStatus.FAIL;
@@ -110,6 +109,6 @@ export class ReservationResultsService {
       throw error;
     }
 
-    return new CreateReservationResultDto(result, reservationData.images);
+    return result;
   }
 }
