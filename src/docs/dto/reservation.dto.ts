@@ -128,7 +128,7 @@ export class ReservationItemDto {
     description: '최대 참가자 수',
     example: 20,
   })
-  maxParticipantCount: number;
+  maxParticipants: number;
 
   @ApiProperty({
     description: '호스트 사용자 ID',
@@ -173,7 +173,7 @@ export class ReservationItemDto {
     category: string,
     reservationDatetime: Date,
     participantCount: number,
-    maxParticipantCount: number,
+    maxParticipants: number,
     hostId: number,
     hostNickname: string,
     images: string[],
@@ -186,7 +186,7 @@ export class ReservationItemDto {
     this.category = category;
     this.reservationDatetime = reservationDatetime;
     this.participantCount = participantCount;
-    this.maxParticipantCount = maxParticipantCount;
+    this.maxParticipants = maxParticipants;
     this.hostId = hostId;
     this.hostNickname = hostNickname;
     this.images = images;
