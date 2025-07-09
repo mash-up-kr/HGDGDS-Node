@@ -148,14 +148,14 @@ export class ReservationsController {
   @ApiOperation({
     summary: '예약 목록 - 예약정보 ✅',
     description:
-      '현재 시간 기준으로 예약 목록을 조회합니다. before: 지난 예약, after: 예정된 예약',
+      '현재 시간 기준으로 예약 목록을 조회합니다. BEFORE: 지난 예약, AFTER: 예정된 예약',
   })
   @ApiQuery({
     name: 'status',
-    description: '예약 상태 (before: 지난 예약, after: 예정된 예약)',
-    enum: ['before', 'after'],
+    description: '예약 상태 (BEFORE: 지난 예약, AFTER: 예정된 예약)',
+    enum: ['BEFORE', 'AFTER'],
     required: false,
-    example: 'after',
+    example: 'AFTER',
   })
   @ApiErrorResponse(InvalidTokenException)
   @CommonResponseDecorator(GetReservationsResponse)

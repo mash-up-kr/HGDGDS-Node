@@ -82,8 +82,8 @@ export class CreateReservationResponse {
  * 예약 리스트에서 예약정보 조회
  */
 export enum ReservationStatusFilter {
-  AFTER = 'after',
-  BEFORE = 'before',
+  AFTER = 'AFTER',
+  BEFORE = 'BEFORE',
 }
 export class GetReservationsQueryDto extends BasePaginationQueryDto {
   @ApiProperty({

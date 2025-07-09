@@ -619,16 +619,16 @@ export class ReservationsService {
   ): Promise<
     Map<number, { count: number; profileImageCodeList: ProfileImageCode[] }>
   > {
-    const infoMap = new Map<
+    const finalInfoMap = new Map<
       number,
       { count: number; profileImageCodeList: ProfileImageCode[] }
     >();
 
-    if (reservationIds.length === 0) return infoMap;
+    if (reservationIds.length === 0) return finalInfoMap;
 
     const userReservations = await this.userReservationRepository.find({
       select: {
-        id: true,
+        createdAt: true,
         reservation: {
           id: true,
         },
@@ -647,21 +647,40 @@ export class ReservationsService {
       },
     });
 
+    const tempGroupedData = new Map<
+      number,
+      { profileImageCode: ProfileImageCode; joinedAt: Date }[]
+    >();
+
     userReservations.forEach((ur) => {
       const reservationId = ur.reservation.id;
-      const profileImageCode = ur.user.profileImageCode;
-
-      if (!infoMap.has(reservationId)) {
-        infoMap.set(reservationId, { count: 0, profileImageCodeList: [] });
+      if (!tempGroupedData.has(reservationId)) {
+        tempGroupedData.set(reservationId, []);
       }
-      const currentInfo = infoMap.get(reservationId)!;
-      currentInfo.count += 1;
-      if (currentInfo.profileImageCodeList.length < 3) {
-        currentInfo.profileImageCodeList.push(profileImageCode);
-      }
+      tempGroupedData.get(reservationId)!.push({
+        profileImageCode: ur.user.profileImageCode,
+        joinedAt: ur.createdAt,
+      });
     });
 
-    return infoMap;
+    for (const [reservationId, participants] of tempGroupedData.entries()) {
+      // 참여 시점을 기준으로 내림차순 정렬 (최신순)
+      const sortedParticipants = participants.sort(
+        (a, b) => b.joinedAt.getTime() - a.joinedAt.getTime(),
+      );
+
+      // 정렬된 목록에서 상위 3개의 프로필 코드만 추출
+      const top3ProfileCodes = sortedParticipants
+        .slice(0, 3)
+        .map((p) => p.profileImageCode);
+
+      finalInfoMap.set(reservationId, {
+        count: participants.length,
+        profileImageCodeList: top3ProfileCodes,
+      });
+    }
+
+    return finalInfoMap;
   }
 
   /**
