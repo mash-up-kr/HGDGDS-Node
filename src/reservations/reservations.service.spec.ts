@@ -40,7 +40,6 @@ describe('ReservationsService', () => {
   let imageRepository: MockRepository<Image>;
 
   beforeEach(async () => {
-    // DataSource의 transaction 메서드 모킹
     const mockDataSource = {
       transaction: jest.fn().mockImplementation((cb: TransactionCallback) => {
         const mockManager = {
@@ -85,14 +84,11 @@ describe('ReservationsService', () => {
     imageRepository = module.get(getRepositoryToken(Image));
   });
 
-  // 기존 createReservation 테스트는 생략 (이전 코드에서 정상 동작)
-
   describe('getReservations', () => {
     const currentUserId = 1;
     let mockUserReservations: UserReservation[];
 
     beforeEach(() => {
-      // 모든 테스트에서 사용할 공통 가짜 데이터
       mockUserReservations = [
         {
           id: 1,
@@ -118,7 +114,6 @@ describe('ReservationsService', () => {
         } as UserReservation,
       ];
 
-      // getParticipantInfoMap에 대한 모킹 설정
       (
         userReservationRepository.createQueryBuilder as jest.Mock
       ).mockReturnValue({
@@ -133,7 +128,6 @@ describe('ReservationsService', () => {
         ]),
       });
 
-      // getImageUrlMap에 대한 모킹 설정
       (imageRepository.find as jest.Mock).mockResolvedValue([
         { parentId: 101, s3FilePath: 'path/image1.jpg' },
         { parentId: 102, s3FilePath: 'path/image2.jpg' },
