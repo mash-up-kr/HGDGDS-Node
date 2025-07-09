@@ -15,11 +15,20 @@ import { FilesModule } from './files/files.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { CodesModule } from './codes/codes.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/',
+      serveStaticOptions: {
+        redirect: false,
+      },
     }),
     TypeOrmModule.forRoot({
       ...typeormConfig,
