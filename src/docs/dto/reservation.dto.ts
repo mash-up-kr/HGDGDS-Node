@@ -3,7 +3,7 @@ import { ReservationCategory } from '@/common/enums/reservation-category';
 import { Reservation } from '@/reservations/entities/reservation.entity';
 import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsIn } from 'class-validator';
+import { IsOptional, IsIn, IsEnum } from 'class-validator';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 
 export class CreateReservationResponse {
@@ -80,16 +80,20 @@ export class CreateReservationResponse {
 /**
  * 예약 리스트에서 예약정보 조회
  */
+export enum ReservationStatusFilter {
+  AFTER = 'after',
+  BEFORE = 'before',
+}
 export class GetReservationsQueryDto extends BasePaginationQueryDto {
   @ApiProperty({
-    description: '예약 상태 필터',
-    enum: ['before', 'after'],
+    description: '예약 상태 필터 (AFTER: 예정된 예약, BEFORE: 지난 예약)',
+    enum: ReservationStatusFilter,
     required: false,
-    example: 'after',
+    example: ReservationStatusFilter.AFTER,
   })
   @IsOptional()
-  @IsIn(['before', 'after'])
-  readonly status?: 'before' | 'after';
+  @IsEnum(ReservationStatusFilter)
+  readonly status?: ReservationStatusFilter;
 }
 
 export class ReservationItemDto {

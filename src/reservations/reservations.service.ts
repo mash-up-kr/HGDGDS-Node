@@ -51,6 +51,7 @@ import { PaginationMetadata } from '@/common';
 import {
   GetReservationsQueryDto,
   ReservationItemDto,
+  ReservationStatusFilter,
 } from '@/docs/dto/reservation.dto';
 
 @Injectable()
@@ -540,12 +541,12 @@ export class ReservationsService {
     };
 
     // query.status 값에 따라 reservationDatetime 조건을 추가합니다.
-    if (query.status === 'after') {
+    if (query.status === ReservationStatusFilter.AFTER) {
       // 예정된 예약
       whereClause.reservation = {
         reservationDatetime: MoreThanOrEqual(now),
       };
-    } else if (query.status === 'before') {
+    } else if (query.status === ReservationStatusFilter.BEFORE) {
       // 지난 예약
       whereClause.reservation = {
         reservationDatetime: LessThan(now),
