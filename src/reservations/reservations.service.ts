@@ -529,6 +529,7 @@ export class ReservationsService {
     query: GetReservationsQueryDto,
     currentUserId: number,
   ): Promise<GetReservationsResponse> {
+    const maxParticipants = 30;
     const offset = (query.page - 1) * query.limit;
     const now = new Date();
 
@@ -595,7 +596,7 @@ export class ReservationsService {
         reservation.category,
         reservation.reservationDatetime,
         info.count,
-        30, // 최대 참가자 수
+        maxParticipants,
         reservation.host.id,
         reservation.host.nickname,
         imageUrls,
