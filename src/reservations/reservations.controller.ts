@@ -22,10 +22,7 @@ import {
 import {
   CreateReservationResponse,
   GetReservationsQueryDto,
-  GetReservationsResponseDto,
 } from '../docs/dto/reservation.dto';
-import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
-import { PaginationMetadata } from '@/common/dto/response';
 import { GlobalAuthGuard } from '@/common/guard/global-auth.guard';
 import { ApiAuth } from '@/common/decorator/api.auth.decorator';
 import { UpdateUserStatusRequest } from './dto/request/update.user.status.request';
@@ -64,10 +61,10 @@ import { ReservationMemberDto } from './dto/reservation-member.dto';
 import { GetReservationDetailResponse } from './dto/response/get-reservation-detail.response';
 import { ReservationResultsService } from './reservation-results.service';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
-import { MOCK_RESERVATIONS } from './mock-reservations.data';
-import { OrderCondition } from '@/common/dto/request/pagination.dto';
 import { GetReservationResultsResponseDto } from './dto/response/get-reservation-results.response.dto';
 import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
+import { InvalidTokenException } from '@/common/exception/auth.exception';
+import { GetReservationsResponse } from '@/reservations/dto/response/get-reservation-response';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -149,7 +146,7 @@ export class ReservationsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '예약 목록 - 예약정보 (💖목데이터 추가)',
+    summary: '예약 목록 - 예약정보 (💖목데이터 추가)✅',
     description:
       '현재 시간 기준으로 예약 목록을 조회합니다. before: 지난 예약, after: 예정된 예약',
   })
@@ -160,54 +157,13 @@ export class ReservationsController {
     required: false,
     example: 'after',
   })
-  @ApiResponse({
-    status: 200,
-    description: '예약 목록 조회 성공',
-    type: GetReservationsResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: '인증되지 않은 사용자',
-    type: ErrorResponseDto,
-    example: {
-      code: '1003',
-      message: '유효하지 않은 토큰입니다.',
-    },
-  })
-  getReservations(
+  @ApiErrorResponse(InvalidTokenException)
+  @CommonResponseDecorator(GetReservationsResponse)
+  async getReservations(
     @Query() query: GetReservationsQueryDto,
-  ): GetReservationsResponseDto {
-    // 오프셋 방식으로 목데이터 반환
-    const allReservations = MOCK_RESERVATIONS;
-    // 정렬
-    const sorted = [...allReservations].sort((a, b) => {
-      if (query.order === OrderCondition.ASC) {
-        return (
-          new Date(a.reservationDatetime).getTime() -
-          new Date(b.reservationDatetime).getTime()
-        );
-      } else {
-        return (
-          new Date(b.reservationDatetime).getTime() -
-          new Date(a.reservationDatetime).getTime()
-        );
-      }
-    });
-    const offset = (query.page - 1) * query.limit;
-    const pagedReservations = sorted.slice(offset, offset + query.limit);
-    const metadata = new PaginationMetadata(
-      query.page,
-      query.limit,
-      allReservations.length,
-    );
-    return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservations: pagedReservations,
-        metadata: metadata,
-      },
-    };
+    @CurrentUser() user: User,
+  ): Promise<GetReservationsResponse> {
+    return await this.reservationsService.getReservations(query, user.id);
   }
 
   @Get(':reservationId/members')
