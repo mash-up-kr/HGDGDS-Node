@@ -22,7 +22,6 @@ import {
 import {
   CreateReservationResponse,
   GetReservationsQueryDto,
-  GetReservationsResponseDto,
 } from '../docs/dto/reservation.dto';
 import { ErrorResponseDto } from '@/common/dto/response/error-response.dto';
 import { PaginationMetadata } from '@/common/dto/response';
@@ -161,11 +160,6 @@ export class ReservationsController {
     example: 'after',
   })
   @ApiResponse({
-    status: 200,
-    description: '예약 목록 조회 성공',
-    type: GetReservationsResponseDto,
-  })
-  @ApiResponse({
     status: 401,
     description: '인증되지 않은 사용자',
     type: ErrorResponseDto,
@@ -174,9 +168,7 @@ export class ReservationsController {
       message: '유효하지 않은 토큰입니다.',
     },
   })
-  getReservations(
-    @Query() query: GetReservationsQueryDto,
-  ): GetReservationsResponseDto {
+  getReservations(@Query() query: GetReservationsQueryDto) {
     // 오프셋 방식으로 목데이터 반환
     const allReservations = MOCK_RESERVATIONS;
     // 정렬
@@ -201,12 +193,8 @@ export class ReservationsController {
       allReservations.length,
     );
     return {
-      code: '200',
-      message: 'OK',
-      data: {
-        reservations: pagedReservations,
-        metadata: metadata,
-      },
+      reservations: pagedReservations,
+      metadata: metadata,
     };
   }
 

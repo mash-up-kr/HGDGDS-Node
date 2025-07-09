@@ -176,23 +176,3 @@ export class GetReservationsDataDto {
   })
   metadata: PaginationMetadata;
 }
-
-export class GetReservationsResponseDto {
-  @ApiProperty({
-    description: '응답 코드',
-    example: '200',
-  })
-  code: string;
-
-  @ApiProperty({
-    description: '응답 메시지',
-    example: 'OK',
-  })
-  message: string;
-
-  @ApiProperty({
-    description: '예약 목록 데이터',
-    type: GetReservationsDataDto,
-  })
-  data: GetReservationsDataDto;
-}
