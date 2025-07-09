@@ -112,10 +112,10 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '예약 카테고리',
-    example: 'SPORTS',
     enum: ReservationCategory,
+    example: ReservationCategory.SPORTS,
   })
-  category: string;
+  category: ReservationCategory;
 
   @ApiProperty({
     description: '예약 일시',
@@ -181,7 +181,7 @@ export class ReservationItemDto {
   constructor(
     reservationId: number,
     title: string,
-    category: string,
+    category: ReservationCategory,
     reservationDatetime: Date,
     participantCount: number,
     maxParticipants: number,
