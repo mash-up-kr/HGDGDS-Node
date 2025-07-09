@@ -40,7 +40,7 @@ export const MOCK_RESERVATIONS: ReservationItemDto[] = Array.from({
     hostId: (i % NAMES.length) + 1,
     hostNickname: name,
     images: [`path/image${(i % 3) + 1}.jpg`],
-    userStatus: 'default',
+    userStatus: 'DEFAULT',
     isHost: i % 2 === 0,
     profileImageCodeList: profileImageCodeList,
   };
