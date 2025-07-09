@@ -126,19 +126,19 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '최대 참가자 수',
-    example: '20',
+    example: 20,
   })
   maxParticipantCount: number;
 
   @ApiProperty({
     description: '호스트 사용자 ID',
-    example: '10',
+    example: 10,
   })
   hostId: number;
 
   @ApiProperty({
-    description: '호스트 사용자 닉네임',
-    example: '신상우',
+    description: '호스트 닉네임',
+    example: '서연',
   })
   hostNickname: string;
 
@@ -153,11 +153,11 @@ export class ReservationItemDto {
     example: UserReservationStatus.DEFAULT,
     enum: UserReservationStatus,
   })
-  status: string;
+  userStatus: string;
 
   @ApiProperty({
-    description: '호스트 여부',
-    example: true,
+    description: '현재 사용자가 호스트인지 여부',
+    example: false,
   })
   isHost: boolean;
 
@@ -165,7 +165,7 @@ export class ReservationItemDto {
     description: '프로필 이미지 코드 목록',
     example: ['PINK', 'PURPLE', 'ORANGE'],
   })
-  profileImageCode: string[];
+  profileImageCodes: string[];
 
   constructor(
     reservationId: number,
@@ -177,9 +177,9 @@ export class ReservationItemDto {
     hostId: number,
     hostNickname: string,
     images: string[],
-    status: UserReservationStatus,
+    userReservationStatus: UserReservationStatus,
     isHost: boolean,
-    profileImageCodeList: string[],
+    profileImageCodes: string[],
   ) {
     this.reservationId = reservationId;
     this.title = title;
@@ -190,8 +190,8 @@ export class ReservationItemDto {
     this.hostId = hostId;
     this.hostNickname = hostNickname;
     this.images = images;
-    this.status = status;
+    this.userStatus = userReservationStatus;
     this.isHost = isHost;
-    this.profileImageCode = profileImageCodeList;
+    this.profileImageCodes = profileImageCodes;
   }
 }

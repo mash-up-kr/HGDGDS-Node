@@ -154,7 +154,7 @@ describe('ReservationsService', () => {
       const firstItem = result.reservations[0];
       expect(firstItem.reservationId).toBe(101);
       expect(firstItem.isHost).toBe(true);
-      expect(firstItem.status).toBe(UserReservationStatus.DEFAULT);
+      expect(firstItem.userStatus).toBe(UserReservationStatus.DEFAULT);
     });
 
     it('status=after 필터가 있을 때 예정된 예약만 반환해야 한다', async () => {
