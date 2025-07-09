@@ -16,7 +16,6 @@ import { FilesService } from '@/files/files.service';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from '@/firebase/firebase.service';
 
-// DTO and Enum Imports
 import {
   GetReservationsQueryDto,
   ReservationStatusFilter,
@@ -116,7 +115,6 @@ describe('ReservationsService', () => {
         } as UserReservation,
       ];
 
-      // ⭐️ 변경된 getParticipantInfoMap 내부의 `find` 메서드를 모킹합니다.
       (userReservationRepository.find as jest.Mock).mockResolvedValue([
         {
           createdAt: new Date('2024-05-25T12:00:00Z'),
