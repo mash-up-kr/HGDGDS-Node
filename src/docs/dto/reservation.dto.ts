@@ -158,7 +158,7 @@ export class ReservationItemDto {
     example: UserReservationStatus.DEFAULT,
     enum: UserReservationStatus,
   })
-  userStatus: string;
+  userStatus: UserReservationStatus;
 
   @ApiProperty({
     description: '현재 사용자가 호스트인지 여부',
