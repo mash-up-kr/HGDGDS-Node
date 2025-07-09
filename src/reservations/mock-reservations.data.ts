@@ -33,7 +33,7 @@ export const MOCK_RESERVATIONS: ReservationItemDto[] = Array.from({
   return {
     reservationId: i + 1,
     title: name,
-    category: '운동경기',
+    category: 'ACTIVITY',
     reservationDatetime: `2025-07-${((i % 28) + 1).toString().padStart(2, '0')}T19:00:00+09:00`,
     participantCount: Math.floor(Math.random() * 20) + 1,
     maxParticipants: 20,
