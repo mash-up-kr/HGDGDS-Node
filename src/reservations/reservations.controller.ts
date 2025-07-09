@@ -146,7 +146,7 @@ export class ReservationsController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '예약 목록 - 예약정보 (💖목데이터 추가)✅',
+    summary: '예약 목록 - 예약정보 ✅',
     description:
       '현재 시간 기준으로 예약 목록을 조회합니다. before: 지난 예약, after: 예정된 예약',
   })
