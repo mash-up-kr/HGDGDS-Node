@@ -21,10 +21,15 @@ const NAMES = [
   '가자ㅏ',
 ];
 
+const PROFILE_IMAGE_CODES = ['PURPLE', 'ORANGE', 'GREEN', 'BLUE', 'PINK'];
+
 export const MOCK_RESERVATIONS: ReservationItemDto[] = Array.from({
   length: 30,
 }).map((_, i) => {
   const name = NAMES[i % NAMES.length];
+  const profileImageCodeList = Array.from({ length: 3 }).map(
+    (_, idx) => PROFILE_IMAGE_CODES[(i + idx) % PROFILE_IMAGE_CODES.length],
+  );
   return {
     reservationId: i + 1,
     title: name,
@@ -37,5 +42,6 @@ export const MOCK_RESERVATIONS: ReservationItemDto[] = Array.from({
     images: [`path/image${(i % 3) + 1}.jpg`],
     userStatus: 'default',
     isHost: i % 2 === 0,
+    profileImageCodeList: profileImageCodeList,
   };
 });
