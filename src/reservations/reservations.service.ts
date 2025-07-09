@@ -534,20 +534,15 @@ export class ReservationsService {
     const offset = (query.page - 1) * query.limit;
     const now = new Date();
 
-    const whereClause:
-      | FindOptionsWhere<UserReservation>
-      | FindOptionsWhere<UserReservation>[] = {
+    const whereClause: FindOptionsWhere<UserReservation> = {
       user: { id: currentUserId },
     };
 
-    // query.status 값에 따라 reservationDatetime 조건을 추가합니다.
     if (query.status === ReservationStatusFilter.AFTER) {
-      // 예정된 예약
       whereClause.reservation = {
         reservationDatetime: MoreThanOrEqual(now),
       };
     } else if (query.status === ReservationStatusFilter.BEFORE) {
-      // 지난 예약
       whereClause.reservation = {
         reservationDatetime: LessThan(now),
       };
@@ -631,15 +626,31 @@ export class ReservationsService {
 
     if (reservationIds.length === 0) return infoMap;
 
-    const participantsData = await this.userReservationRepository
-      .createQueryBuilder('ur')
-      .select('ur.reservation_id', 'reservationId')
-      .addSelect('user.profile_image_name', 'profileImageCode')
-      .innerJoin('ur.user', 'user')
-      .where('ur.reservation_id IN (:...ids)', { ids: reservationIds })
-      .getRawMany();
+    const userReservations = await this.userReservationRepository.find({
+      select: {
+        id: true,
+        reservation: {
+          id: true,
+        },
+        user: {
+          profileImageCode: true,
+        },
+      },
+      relations: {
+        reservation: true,
+        user: true,
+      },
+      where: {
+        reservation: {
+          id: In(reservationIds),
+        },
+      },
+    });
 
-    participantsData.forEach(({ reservationId, profileImageCode }) => {
+    userReservations.forEach((ur) => {
+      const reservationId = ur.reservation.id;
+      const profileImageCode = ur.user.profileImageCode;
+
       if (!infoMap.has(reservationId)) {
         infoMap.set(reservationId, { count: 0, profileImageCodeList: [] });
       }
@@ -666,7 +677,7 @@ export class ReservationsService {
     const images = await this.imageRepository.find({
       where: {
         parentType: ImageParentType.RESERVATION,
-        parentId: In(reservationIds), // TypeORM의 In 연산자 사용
+        parentId: In(reservationIds),
       },
     });
 

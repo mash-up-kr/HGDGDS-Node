@@ -3,7 +3,7 @@ import { ReservationCategory } from '@/common/enums/reservation-category';
 import { Reservation } from '@/reservations/entities/reservation.entity';
 import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsIn, IsEnum } from 'class-validator';
+import { IsOptional, IsEnum } from 'class-validator';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
