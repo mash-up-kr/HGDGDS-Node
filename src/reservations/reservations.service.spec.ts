@@ -1,6 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, ObjectLiteral, Repository } from 'typeorm';
+import {
+  DataSource,
+  LessThan,
+  MoreThanOrEqual,
+  ObjectLiteral,
+  Repository,
+} from 'typeorm';
 import { ReservationsService } from './reservations.service';
 import { Reservation } from './entities/reservation.entity';
 import { UserReservation } from './entities/user-reservation.entity';
@@ -10,12 +16,18 @@ import { FilesService } from '@/files/files.service';
 import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { GetReservationsQueryDto } from '@/docs/dto/reservation.dto';
+// DTO and Enum Imports
+import {
+  GetReservationsQueryDto,
+  ReservationStatusFilter,
+} from '@/docs/dto/reservation.dto';
 import { ReservationCategory } from '@/common/enums/reservation-category';
 import { OrderCondition } from '@/common';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { GetReservationsResponse } from '@/reservations/dto/response/get-reservation-response';
 
+// Mock 타입 정의
 type MockRepository<T extends ObjectLiteral> = Partial<
   Record<keyof Repository<T>, jest.Mock>
 >;
@@ -86,10 +98,11 @@ describe('ReservationsService', () => {
 
   describe('getReservations', () => {
     const currentUserId = 1;
-    let mockUserReservations: UserReservation[];
+    let mockUserReservationsFromFindAndCount: UserReservation[];
 
     beforeEach(() => {
-      mockUserReservations = [
+      // findAndCount가 반환할 가짜 데이터
+      mockUserReservationsFromFindAndCount = [
         {
           id: 1,
           status: UserReservationStatus.DEFAULT,
@@ -101,37 +114,60 @@ describe('ReservationsService', () => {
             host: { id: 1, nickname: '호스트' },
           },
         } as UserReservation,
-        {
-          id: 2,
-          status: UserReservationStatus.READY,
-          reservation: {
-            id: 102,
-            title: '지난 예약',
-            category: ReservationCategory.FOOD,
-            reservationDatetime: new Date('2020-01-01T12:00:00Z'),
-            host: { id: 2, nickname: '다른사람' },
-          },
-        } as UserReservation,
       ];
 
-      (
-        userReservationRepository.createQueryBuilder as jest.Mock
-      ).mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          { reservationId: 101, profileImageCode: 'PURPLE', count: '3' },
-          { reservationId: 102, profileImageCode: 'PINK', count: '5' },
-        ]),
-      });
+      // ⭐️ 변경된 getParticipantInfoMap 내부의 `find` 메서드를 모킹합니다.
+      (userReservationRepository.find as jest.Mock).mockResolvedValue([
+        {
+          createdAt: new Date('2024-05-25T12:00:00Z'),
+          reservation: { id: 101 },
+          user: { profileImageCode: ProfileImageCode.PINK },
+        },
+        {
+          createdAt: new Date('2024-05-25T11:00:00Z'),
+          reservation: { id: 101 },
+          user: { profileImageCode: ProfileImageCode.BLUE },
+        },
+        {
+          createdAt: new Date('2024-05-25T10:00:00Z'),
+          reservation: { id: 101 },
+          user: { profileImageCode: ProfileImageCode.GREEN },
+        },
+        {
+          createdAt: new Date('2024-05-25T09:00:00Z'),
+          reservation: { id: 101 },
+          user: { profileImageCode: ProfileImageCode.ORANGE },
+        }, // 4번째 멤버, slice 대상에서 제외되어야 함
+      ] as UserReservation[]);
 
+      // getImageUrlMap 내부의 `find` 메서드를 모킹합니다.
       (imageRepository.find as jest.Mock).mockResolvedValue([
         { parentId: 101, s3FilePath: 'path/image1.jpg' },
-        { parentId: 102, s3FilePath: 'path/image2.jpg' },
       ] as Image[]);
+    });
+
+    it('최신 참여자 3명의 프로필 코드를 최신순으로 올바르게 반환해야 한다', async () => {
+      const query = Object.assign(new GetReservationsQueryDto(), {
+        page: 1,
+        limit: 10,
+        order: OrderCondition.DESC,
+      });
+      (userReservationRepository.findAndCount as jest.Mock).mockResolvedValue([
+        mockUserReservationsFromFindAndCount,
+        1,
+      ]);
+
+      const result = await service.getReservations(query, currentUserId);
+      const firstReservation = result.reservations[0];
+
+      expect(firstReservation).toBeDefined();
+      expect(firstReservation.profileImageCodeList.length).toBe(3); // 상위 3개만 포함되는지 확인
+      expect(firstReservation.profileImageCodeList).toEqual([
+        // 최신순으로 정렬되었는지 확인
+        ProfileImageCode.PINK,
+        ProfileImageCode.BLUE,
+        ProfileImageCode.GREEN,
+      ]);
     });
 
     it('필터가 없을 때 전체 예약 목록을 페이지네이션하여 반환해야 한다', async () => {
@@ -141,20 +177,16 @@ describe('ReservationsService', () => {
         order: OrderCondition.DESC,
       });
       (userReservationRepository.findAndCount as jest.Mock).mockResolvedValue([
-        mockUserReservations,
-        2,
+        mockUserReservationsFromFindAndCount,
+        1,
       ]);
 
       const result = await service.getReservations(query, currentUserId);
 
       expect(result).toBeInstanceOf(GetReservationsResponse);
-      expect(result.reservations.length).toBe(2);
-      expect(result.metadata.total).toBe(2);
-
-      const firstItem = result.reservations[0];
-      expect(firstItem.reservationId).toBe(101);
-      expect(firstItem.isHost).toBe(true);
-      expect(firstItem.userStatus).toBe(UserReservationStatus.DEFAULT);
+      expect(result.reservations.length).toBe(1);
+      expect(result.metadata.total).toBe(1);
+      expect(result.reservations[0].isHost).toBe(true);
     });
 
     it('status=after 필터가 있을 때 예정된 예약만 반환해야 한다', async () => {
@@ -162,11 +194,10 @@ describe('ReservationsService', () => {
         page: 1,
         limit: 10,
         order: OrderCondition.DESC,
-        status: 'after',
+        status: ReservationStatusFilter.AFTER,
       });
-      const upcomingReservation = [mockUserReservations[0]];
       (userReservationRepository.findAndCount as jest.Mock).mockResolvedValue([
-        upcomingReservation,
+        mockUserReservationsFromFindAndCount,
         1,
       ]);
 
@@ -174,7 +205,15 @@ describe('ReservationsService', () => {
 
       expect(result.reservations.length).toBe(1);
       expect(result.metadata.total).toBe(1);
-      expect(result.reservations[0].title).toBe('예정된 예약');
+      expect(userReservationRepository.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            reservation: {
+              reservationDatetime: MoreThanOrEqual(expect.any(Date)),
+            },
+          }),
+        }),
+      );
     });
 
     it('status=before 필터가 있을 때 지난 예약만 반환해야 한다', async () => {
@@ -182,11 +221,10 @@ describe('ReservationsService', () => {
         page: 1,
         limit: 10,
         order: OrderCondition.DESC,
-        status: 'before',
+        status: ReservationStatusFilter.BEFORE,
       });
-      const pastReservation = [mockUserReservations[1]];
       (userReservationRepository.findAndCount as jest.Mock).mockResolvedValue([
-        pastReservation,
+        mockUserReservationsFromFindAndCount,
         1,
       ]);
 
@@ -194,7 +232,13 @@ describe('ReservationsService', () => {
 
       expect(result.reservations.length).toBe(1);
       expect(result.metadata.total).toBe(1);
-      expect(result.reservations[0].title).toBe('지난 예약');
+      expect(userReservationRepository.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            reservation: { reservationDatetime: LessThan(expect.any(Date)) },
+          }),
+        }),
+      );
     });
 
     it('결과가 없을 때 빈 배열과 메타데이터를 반환해야 한다', async () => {
@@ -212,10 +256,7 @@ describe('ReservationsService', () => {
 
       expect(result.reservations.length).toBe(0);
       expect(result.metadata.total).toBe(0);
-      // 추가 헬퍼 함수들이 호출되지 않았는지 확인
-      expect(
-        userReservationRepository.createQueryBuilder,
-      ).not.toHaveBeenCalled();
+      expect(userReservationRepository.find).not.toHaveBeenCalled();
       expect(imageRepository.find).not.toHaveBeenCalled();
     });
   });
