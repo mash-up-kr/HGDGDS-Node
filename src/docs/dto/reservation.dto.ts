@@ -5,6 +5,7 @@ import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsIn, IsEnum } from 'class-validator';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 export class CreateReservationResponse {
   @ApiProperty({
@@ -167,9 +168,15 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '프로필 이미지 코드 목록',
-    example: ['PINK', 'PURPLE', 'ORANGE'],
+    enum: ProfileImageCode,
+    isArray: true,
+    example: [
+      ProfileImageCode.PINK,
+      ProfileImageCode.PURPLE,
+      ProfileImageCode.ORANGE,
+    ],
   })
-  profileImageCodes: string[];
+  profileImageCodeList: ProfileImageCode[];
 
   constructor(
     reservationId: number,
@@ -183,7 +190,7 @@ export class ReservationItemDto {
     images: string[],
     userReservationStatus: UserReservationStatus,
     isHost: boolean,
-    profileImageCodes: string[],
+    profileImageCodeList: ProfileImageCode[],
   ) {
     this.reservationId = reservationId;
     this.title = title;
@@ -196,6 +203,6 @@ export class ReservationItemDto {
     this.images = images;
     this.userStatus = userReservationStatus;
     this.isHost = isHost;
-    this.profileImageCodes = profileImageCodes;
+    this.profileImageCodeList = profileImageCodeList;
   }
 }

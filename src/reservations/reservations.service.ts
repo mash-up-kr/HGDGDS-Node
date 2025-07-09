@@ -587,7 +587,7 @@ export class ReservationsService {
       const reservation = userReservation.reservation;
       const info = participantInfoMap.get(reservation.id) || {
         count: 0,
-        profileImageCodes: [],
+        profileImageCodeList: [],
       };
       const imageUrls = imageUrlMap.get(reservation.id) || [];
 
@@ -603,7 +603,7 @@ export class ReservationsService {
         imageUrls,
         userReservation.status,
         reservation.host.id === currentUserId,
-        info.profileImageCodes,
+        info.profileImageCodeList,
       );
     });
 
@@ -622,11 +622,11 @@ export class ReservationsService {
   private async getParticipantInfoMap(
     reservationIds: number[],
   ): Promise<
-    Map<number, { count: number; profileImageCodes: ProfileImageCode[] }>
+    Map<number, { count: number; profileImageCodeList: ProfileImageCode[] }>
   > {
     const infoMap = new Map<
       number,
-      { count: number; profileImageCodes: ProfileImageCode[] }
+      { count: number; profileImageCodeList: ProfileImageCode[] }
     >();
 
     if (reservationIds.length === 0) return infoMap;
@@ -641,12 +641,12 @@ export class ReservationsService {
 
     participantsData.forEach(({ reservationId, profileImageCode }) => {
       if (!infoMap.has(reservationId)) {
-        infoMap.set(reservationId, { count: 0, profileImageCodes: [] });
+        infoMap.set(reservationId, { count: 0, profileImageCodeList: [] });
       }
       const currentInfo = infoMap.get(reservationId)!;
       currentInfo.count += 1;
-      if (currentInfo.profileImageCodes.length < 3) {
-        currentInfo.profileImageCodes.push(profileImageCode);
+      if (currentInfo.profileImageCodeList.length < 3) {
+        currentInfo.profileImageCodeList.push(profileImageCode);
       }
     });
 
