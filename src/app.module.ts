@@ -15,6 +15,7 @@ import { FilesModule } from './files/files.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { CodesModule } from './codes/codes.module';
+import { UniversalLinksModule } from './universal-links/universal-links.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CodesModule } from './codes/codes.module';
     ReservationsModule,
     FirebaseModule,
     CodesModule,
+    UniversalLinksModule,
   ],
   controllers: [AppController],
   providers: [
