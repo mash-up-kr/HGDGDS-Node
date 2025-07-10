@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, In, QueryFailedError, Repository } from 'typeorm';
+import { Reservation } from './entities/reservation.entity';
 import { UserReservation } from './entities/user-reservation.entity';
+import { ReservationResult } from './entities/reservation-result.entity';
 import { Image } from '@/images/entities/images.entity';
+import { User } from '@/users/entities/user.entity';
+import { FilesService } from '@/files/files.service';
+import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
+import { GetReservationResultsResponse } from './dto/response/get-reservation-results.response';
+import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 import { ImageParentType } from '@/common/enums/image-parent-type';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
-import { FilesService } from '@/files/files.service';
-import { ReservationResult } from './entities/reservation-result.entity';
-import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
-import { Reservation } from './entities/reservation.entity';
-import { User } from '@/users/entities/user.entity';
 import {
+  ReservationAccessDeniedException,
+  ReservationNotDoneException,
   ReservationNotFoundException,
   ReservationResultAlreadyExistsException,
   UserReservationNotFoundException,
@@ -24,6 +28,10 @@ export class ReservationResultsService {
     private readonly reservationRepository: Repository<Reservation>,
     @InjectRepository(UserReservation)
     private readonly userReservationRepository: Repository<UserReservation>,
+    @InjectRepository(ReservationResult)
+    private readonly reservationResultRepository: Repository<ReservationResult>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
     private readonly dataSource: DataSource,
     private readonly filesService: FilesService,
   ) {}
@@ -110,5 +118,136 @@ export class ReservationResultsService {
     }
 
     return result;
+  }
+
+  async getReservationResults(
+    reservationId: number,
+    currentUserId: number,
+  ): Promise<GetReservationResultsResponse> {
+    // 접근 권한 및 예약 상태 검증
+    const reservation = await this.validateAccessAndGetReservation(
+      reservationId,
+      currentUserId,
+    );
+
+    // 모든 예약 결과 데이터 조회
+    const allResults = await this.reservationResultRepository.find({
+      where: { reservation: { id: reservationId } },
+      relations: { user: true, reservation: true },
+    });
+
+    if (allResults.length === 0) {
+      return new GetReservationResultsResponse(null, []);
+    }
+
+    // 호스트 결과와 참가자 결과 분리
+    const { hostResultEntity, participantResultEntities } =
+      this.separateHostAndParticipants(allResults, reservation.host.id);
+
+    // 이미지 URL 생성
+    const resultIds = allResults.map((result) => result.id);
+    const imageUrlMap = await this.generateImageUrlMapForResults(resultIds);
+
+    // 응답 DTO 생성
+    const hostResultDto = hostResultEntity
+      ? new CreateReservationResultDto(
+          hostResultEntity,
+          imageUrlMap.get(hostResultEntity.id) || null,
+        )
+      : null;
+
+    const participantResultDtos = participantResultEntities.map(
+      (result) =>
+        new CreateReservationResultDto(
+          result,
+          imageUrlMap.get(result.id) || null,
+        ),
+    );
+
+    return new GetReservationResultsResponse(
+      hostResultDto,
+      participantResultDtos,
+    );
+  }
+
+  // 예약 접근 권한 및 상태 검증 후 예약 정보 반환
+  private async validateAccessAndGetReservation(
+    reservationId: number,
+    currentUserId: number,
+  ): Promise<Reservation> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId },
+      relations: ['host'],
+    });
+    if (!reservation) throw new ReservationNotFoundException();
+
+    const membership = await this.userReservationRepository.findOne({
+      where: {
+        reservation: { id: reservationId },
+        user: { id: currentUserId },
+      },
+    });
+    if (!membership) throw new ReservationAccessDeniedException();
+
+    if (new Date() < reservation.reservationDatetime) {
+      throw new ReservationNotDoneException();
+    }
+
+    return reservation;
+  }
+
+  // 호스트 결과와 참가자 결과를 분리하는 함수
+  private separateHostAndParticipants(
+    results: ReservationResult[],
+    hostId: number,
+  ) {
+    let hostResultEntity: ReservationResult | undefined;
+    const participantResultEntities: ReservationResult[] = [];
+
+    for (const result of results) {
+      if (result.user.id === hostId) {
+        hostResultEntity = result;
+      } else {
+        participantResultEntities.push(result);
+      }
+    }
+    return { hostResultEntity, participantResultEntities };
+  }
+
+  // 예약 결과 ID 목록에 대한 이미지 URL 맵 생성
+  private async generateImageUrlMapForResults(
+    resultIds: number[],
+  ): Promise<Map<number, string[]>> {
+    const imageUrlMap = new Map<number, string[]>();
+    if (resultIds.length === 0) return imageUrlMap;
+
+    const images = await this.imageRepository.find({
+      where: {
+        parentType: ImageParentType.RESERVATION_RESULT,
+        parentId: In(resultIds),
+      },
+    });
+
+    const urlPromises = images.map(async (image) => {
+      try {
+        const url = await this.filesService.getAccessPresignedUrl(
+          image.s3FilePath,
+        );
+        return { parentId: image.parentId, url };
+      } catch {
+        return { parentId: image.parentId, url: null };
+      }
+    });
+
+    const urlResults = await Promise.all(urlPromises);
+
+    urlResults.forEach(({ parentId, url }) => {
+      if (url && parentId) {
+        if (!imageUrlMap.has(parentId)) imageUrlMap.set(parentId, []);
+        imageUrlMap.get(parentId)!.push(url);
+      }
+    });
+
+    return imageUrlMap;
   }
 }
