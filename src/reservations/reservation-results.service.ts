@@ -122,10 +122,7 @@ export class ReservationResultsService {
     reservationId: number,
     currentUserId: number,
   ): Promise<GetReservationResultsResponse> {
-    const reservation = await this.validateAccessAndGetReservation(
-      reservationId,
-      currentUserId,
-    );
+    await this.validateAccessAndGetReservation(reservationId, currentUserId);
 
     const currentUserResult = await this.reservationResultRepository.findOne({
       where: {
@@ -176,7 +173,7 @@ export class ReservationResultsService {
   private async validateAccessAndGetReservation(
     reservationId: number,
     currentUserId: number,
-  ): Promise<Reservation> {
+  ): Promise<void> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId },
     });
@@ -193,8 +190,6 @@ export class ReservationResultsService {
     if (new Date() < reservation.reservationDatetime) {
       throw new ReservationNotDoneException();
     }
-
-    return reservation;
   }
 
   private async generateImageUrlMapForResults(
