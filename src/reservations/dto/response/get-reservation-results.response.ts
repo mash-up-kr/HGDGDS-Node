@@ -3,24 +3,22 @@ import { CreateReservationResultDto } from './create-reservation-result.dto';
 
 export class GetReservationResultsResponse {
   @ApiProperty({
-    description:
-      '호스트 정보. 호스트가 결과를 등록하지 않은 경우 null일 수 있습니다.',
+    description: 'API를 요청한 현재 사용자의 예약 결과.',
     type: CreateReservationResultDto,
-    nullable: true,
   })
-  host: CreateReservationResultDto | null;
+  currentUser: CreateReservationResultDto;
 
   @ApiProperty({
-    description: '예약 결과 목록 (호스트 제외)',
+    description: '예약 결과 목록(자기 자신 제외)',
     type: [CreateReservationResultDto],
   })
   results: CreateReservationResultDto[];
 
   constructor(
-    host: CreateReservationResultDto | null,
+    currentUser: CreateReservationResultDto,
     results: CreateReservationResultDto[],
   ) {
-    this.host = host;
+    this.currentUser = currentUser;
     this.results = results;
   }
 }
