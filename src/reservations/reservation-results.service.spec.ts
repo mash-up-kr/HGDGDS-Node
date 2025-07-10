@@ -123,8 +123,10 @@ describe('ReservationResultsService', () => {
 
       // Assert
       expect(result.currentUser.userId).toBe(currentUserId);
+      expect(result.currentUser.nickname).toBe('나');
       expect(result.results.length).toBe(1);
       expect(result.results[0].userId).toBe(2);
+      expect(result.results[0].nickname).toBe('다른사람');
 
       // ⭐️ Mock 호출 검증
       expect(reservationResultRepository.findOne).toHaveBeenCalledWith({

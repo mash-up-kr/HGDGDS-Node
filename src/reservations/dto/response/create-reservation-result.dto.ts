@@ -24,6 +24,12 @@ export class CreateReservationResultDto {
   userId: number;
 
   @ApiProperty({
+    description: '결과를 등록한 사용자의 닉네임',
+    example: '김프디',
+  })
+  nickname: string;
+
+  @ApiProperty({
     description: '결과를 등록한 사용자의 프로필 이미지 코드',
     enum: ProfileImageCode,
     example: ProfileImageCode.BLUE,
@@ -74,6 +80,7 @@ export class CreateReservationResultDto {
     this.status = result.status;
     this.images = images;
     this.userId = result.user.id;
+    this.nickname = result.user.nickname;
     this.profileImageCode = result.user.profileImageCode;
     this.createdAt = result.createdAt;
     this.updatedAt = result.updatedAt;
