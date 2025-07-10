@@ -227,9 +227,7 @@ export class ReservationsService {
 
     this.firebaseService
       .sendMulticastNotification(fcmTokens, title, message)
-      .catch((err) =>
-        console.error('[FCM ERROR] 준비 완료 알림 전송 실패', err),
-      );
+      .catch((err) => console.error(NotificationSendFailedException, err));
   }
 
   async updateReservation(
