@@ -67,6 +67,7 @@ import { MOCK_RESERVATIONS } from './mock-reservations.data';
 import { OrderCondition } from '@/common/dto/request/pagination.dto';
 import { GetReservationResultsResponseDto } from './dto/response/get-reservation-results.response.dto';
 import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 @ApiAuth()
 @ApiTags('예약')
@@ -448,6 +449,7 @@ export class ReservationsController {
       reservationResultId: 1,
       reservationId: 1,
       userId: 1,
+      profileImageCode: ProfileImageCode.BLUE,
       status: ReservationResultStatus.SUCCESS,
       images: ['http://abc.com/image1.jpg'],
       successDatetime: new Date('2025-07-11T19:00:00+09:00'),
@@ -462,6 +464,7 @@ export class ReservationsController {
           reservationResultId: 5,
           reservationId: 1,
           userId: 5,
+          profileImageCode: ProfileImageCode.BLUE,
           status: ReservationResultStatus.SUCCESS,
           images: ['http://abc.com/image1.jpg'],
           successDatetime: new Date('2025-07-11T19:00:00+09:00'),
@@ -473,6 +476,7 @@ export class ReservationsController {
           reservationResultId: 2,
           reservationId: 1,
           userId: 2,
+          profileImageCode: ProfileImageCode.BLUE,
           status: ReservationResultStatus.FAIL,
           images: ['http://abc.com/image2.jpg'],
           successDatetime: new Date('2025-07-11T19:00:00+09:00'),
@@ -484,6 +488,7 @@ export class ReservationsController {
           reservationResultId: 3,
           reservationId: 1,
           userId: 3,
+          profileImageCode: ProfileImageCode.BLUE,
           status: ReservationResultStatus.HALF_SUCCESS,
           images: ['http://abc.com/image3.jpg'],
           successDatetime: new Date('2025-07-11T19:00:00+09:00'),
@@ -495,6 +500,7 @@ export class ReservationsController {
           reservationResultId: 4,
           reservationId: 1,
           userId: 4,
+          profileImageCode: ProfileImageCode.BLUE,
           status: ReservationResultStatus.SUCCESS,
           images: ['http://abc.com/image4.jpg'],
           successDatetime: new Date('2025-07-11T19:00:00+09:00'),
