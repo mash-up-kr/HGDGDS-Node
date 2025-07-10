@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, In, Not, QueryFailedError, Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { UserReservation } from './entities/user-reservation.entity';
 import { ReservationResult } from './entities/reservation-result.entity';
@@ -14,6 +14,7 @@ import { ImageParentType } from '@/common/enums/image-parent-type';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
 import {
+  CurrentUserResultNotFoundException,
   ReservationAccessDeniedException,
   ReservationNotDoneException,
   ReservationNotFoundException,
@@ -125,38 +126,51 @@ export class ReservationResultsService {
     currentUserId: number,
   ): Promise<GetReservationResultsResponse> {
     // 접근 권한 및 예약 상태 검증
-    const reservation = await this.validateAccessAndGetReservation(
-      reservationId,
-      currentUserId,
-    );
+    await this.validateAccessAndGetReservation(reservationId, currentUserId);
 
-    // 모든 예약 결과 데이터 조회
-    const allResults = await this.reservationResultRepository.find({
-      where: { reservation: { id: reservationId } },
+    // 현재 사용자 결과 조회
+    const currentUserResult = await this.reservationResultRepository.findOne({
+      where: {
+        reservation: { id: reservationId },
+        user: { id: currentUserId },
+      },
       relations: { user: true, reservation: true },
     });
 
-    if (allResults.length === 0) {
-      return new GetReservationResultsResponse(null, []);
+    // 현재 사용자 결과 존재 여부 검증
+    if (!currentUserResult) {
+      throw new CurrentUserResultNotFoundException();
     }
 
-    // 호스트 결과와 참가자 결과 분리
-    const { hostResultEntity, participantResultEntities } =
-      this.separateHostAndParticipants(allResults, reservation.host.id);
+    // 다른 참가자들의 결과 조회
+    const otherParticipantResults = await this.reservationResultRepository.find(
+      {
+        where: {
+          reservation: {
+            id: reservationId,
+          },
+          user: {
+            id: Not(currentUserId),
+          },
+        },
+        relations: { user: true, reservation: true },
+      },
+    );
 
     // 이미지 URL 생성
-    const resultIds = allResults.map((result) => result.id);
-    const imageUrlMap = await this.generateImageUrlMapForResults(resultIds);
+    const allResultIds = [
+      currentUserResult.id,
+      ...otherParticipantResults.map((result) => result.id),
+    ];
+    const imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
 
     // 응답 DTO 생성
-    const hostResultDto = hostResultEntity
-      ? new CreateReservationResultDto(
-          hostResultEntity,
-          imageUrlMap.get(hostResultEntity.id) || null,
-        )
-      : null;
+    const currentUserResultDto = new CreateReservationResultDto(
+      currentUserResult,
+      imageUrlMap.get(currentUserResult.id) || null,
+    );
 
-    const participantResultDtos = participantResultEntities.map(
+    const otherParticipantResultDtos = otherParticipantResults.map(
       (result) =>
         new CreateReservationResultDto(
           result,
@@ -165,8 +179,8 @@ export class ReservationResultsService {
     );
 
     return new GetReservationResultsResponse(
-      hostResultDto,
-      participantResultDtos,
+      currentUserResultDto,
+      otherParticipantResultDtos,
     );
   }
 
@@ -176,15 +190,20 @@ export class ReservationResultsService {
     currentUserId: number,
   ): Promise<Reservation> {
     const reservation = await this.reservationRepository.findOne({
-      where: { id: reservationId },
-      relations: ['host'],
+      where: {
+        id: reservationId,
+      },
     });
     if (!reservation) throw new ReservationNotFoundException();
 
     const membership = await this.userReservationRepository.findOne({
       where: {
-        reservation: { id: reservationId },
-        user: { id: currentUserId },
+        reservation: {
+          id: reservationId,
+        },
+        user: {
+          id: currentUserId,
+        },
       },
     });
     if (!membership) throw new ReservationAccessDeniedException();
@@ -194,24 +213,6 @@ export class ReservationResultsService {
     }
 
     return reservation;
-  }
-
-  // 호스트 결과와 참가자 결과를 분리하는 함수
-  private separateHostAndParticipants(
-    results: ReservationResult[],
-    hostId: number,
-  ) {
-    let hostResultEntity: ReservationResult | undefined;
-    const participantResultEntities: ReservationResult[] = [];
-
-    for (const result of results) {
-      if (result.user.id === hostId) {
-        hostResultEntity = result;
-      } else {
-        participantResultEntities.push(result);
-      }
-    }
-    return { hostResultEntity, participantResultEntities };
   }
 
   // 예약 결과 ID 목록에 대한 이미지 URL 맵 생성

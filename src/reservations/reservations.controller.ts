@@ -56,6 +56,7 @@ import {
   ReservationNotDoneException,
   ReservationResultAlreadyExistsException,
   ReservationAccessDeniedException,
+  CurrentUserResultNotFoundException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
@@ -413,8 +414,7 @@ export class ReservationsController {
 
   @Get(':reservationId/results')
   @ApiOperation({
-    summary:
-      '구성원들의 예약 결과 목록 조회 (호스트 포함, 호스트는 결과 미등록 시 null) ✅',
+    summary: '구성원들의 예약 결과 목록 조회 ✅',
   })
   @ApiParam({
     name: 'reservationId',
@@ -424,6 +424,7 @@ export class ReservationsController {
   @CommonResponseDecorator(GetReservationResultsResponse)
   @ApiErrorResponse(ReservationAccessDeniedException)
   @ApiErrorResponse(ReservationNotDoneException)
+  @ApiErrorResponse(CurrentUserResultNotFoundException)
   async getReservationResults(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @CurrentUser() user: User,
