@@ -413,7 +413,8 @@ export class ReservationsController {
 
   @Get(':reservationId/results')
   @ApiOperation({
-    summary: '구성원들의 예약 결과 목록 조회 (호스트 포함) ✅',
+    summary:
+      '구성원들의 예약 결과 목록 조회 (호스트 포함, 호스트는 결과 미등록 시 null) ✅',
   })
   @ApiParam({
     name: 'reservationId',
