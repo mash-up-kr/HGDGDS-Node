@@ -303,6 +303,7 @@ export class ReservationsController {
     @CurrentUser() user: User,
   ): Promise<void> {
     await this.reservationsService.updateUserStatus(
+      user,
       reservationId,
       user.id,
       body.status,

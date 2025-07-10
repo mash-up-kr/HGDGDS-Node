@@ -25,6 +25,7 @@ import { OrderCondition } from '@/common';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { GetReservationsResponse } from '@/reservations/dto/response/get-reservation-response';
+import { FCM_TEMPLATES } from '@/firebase/templates';
 
 // Mock 타입 정의
 type MockRepository<T extends ObjectLiteral> = Partial<
@@ -39,6 +40,7 @@ const createMockRepository = <
   create: jest.fn(),
   save: jest.fn(),
   createQueryBuilder: jest.fn(),
+  findOne: jest.fn(),
 });
 
 // Transaction Mock 타입 정의
@@ -49,6 +51,8 @@ describe('ReservationsService', () => {
   let service: ReservationsService;
   let userReservationRepository: MockRepository<UserReservation>;
   let imageRepository: MockRepository<Image>;
+  let reservationRepository: MockRepository<Reservation>;
+  let firebaseService: jest.Mocked<FirebaseService>;
 
   beforeEach(async () => {
     const mockDataSource = {
@@ -85,7 +89,12 @@ describe('ReservationsService', () => {
               .mockResolvedValue('https://s3.com/presigned-url.jpg'),
           },
         },
-        { provide: FirebaseService, useValue: {} },
+        {
+          provide: FirebaseService,
+          useValue: {
+            sendMulticastNotification: jest.fn().mockResolvedValue(undefined),
+          },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
       ],
     }).compile();
@@ -93,6 +102,10 @@ describe('ReservationsService', () => {
     service = module.get<ReservationsService>(ReservationsService);
     userReservationRepository = module.get(getRepositoryToken(UserReservation));
     imageRepository = module.get(getRepositoryToken(Image));
+    reservationRepository = module.get(getRepositoryToken(Reservation));
+    firebaseService = module.get<FirebaseService>(
+      FirebaseService,
+    ) as jest.Mocked<FirebaseService>;
   });
 
   describe('getReservations', () => {
@@ -193,7 +206,7 @@ describe('ReservationsService', () => {
         limit: 10,
         order: OrderCondition.DESC,
         status: ReservationStatusFilter.AFTER,
-      });
+      } as GetReservationsQueryDto);
       (userReservationRepository.findAndCount as jest.Mock).mockResolvedValue([
         mockUserReservationsFromFindAndCount,
         1,
@@ -256,6 +269,70 @@ describe('ReservationsService', () => {
       expect(result.metadata.total).toBe(0);
       expect(userReservationRepository.find).not.toHaveBeenCalled();
       expect(imageRepository.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateUserStatus', () => {
+    it('should send FCM to other members when status is READY', async () => {
+      const reservationId = 1;
+      const currentUserId = 100;
+      const currentUser = { id: currentUserId, nickname: '나' } as User;
+
+      const mockReservation = {
+        id: reservationId,
+        reservationDatetime: new Date(Date.now() + 30 * 60 * 1000),
+        title: '예약이름',
+      } as Reservation;
+
+      const members = [
+        {
+          id: 1,
+          user: currentUser,
+          status: UserReservationStatus.DEFAULT,
+        } as UserReservation,
+        {
+          id: 2,
+          user: {
+            id: 101,
+            nickname: '다른유저1',
+            fcmToken: 'fcm-token-1',
+          },
+          status: UserReservationStatus.READY,
+        },
+        {
+          id: 3,
+          user: {
+            id: 102,
+            nickname: '다른유저2',
+            fcmToken: 'fcm-token-2',
+          },
+          status: UserReservationStatus.DEFAULT,
+        },
+      ] as UserReservation[];
+
+      const mockSendMulticast = jest.fn().mockResolvedValue(undefined);
+      firebaseService.sendMulticastNotification = mockSendMulticast;
+
+      (reservationRepository.findOne as jest.Mock).mockResolvedValue(
+        mockReservation,
+      );
+      (userReservationRepository.find as jest.Mock).mockResolvedValue(members);
+      (userReservationRepository.save as jest.Mock).mockImplementation((ur) =>
+        Promise.resolve(ur),
+      );
+
+      await service.updateUserStatus(
+        currentUser,
+        reservationId,
+        currentUserId,
+        UserReservationStatus.READY,
+      );
+
+      expect(mockSendMulticast).toHaveBeenCalledWith(
+        ['fcm-token-1', 'fcm-token-2'],
+        FCM_TEMPLATES.IM_READY.title(currentUser.nickname),
+        FCM_TEMPLATES.IM_READY.message(currentUser.nickname, '예약이름'),
+      );
     });
   });
 });

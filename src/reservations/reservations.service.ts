@@ -53,6 +53,7 @@ import {
   ReservationItemDto,
   ReservationStatusFilter,
 } from '@/docs/dto/reservation.dto';
+import { FCM_TEMPLATES } from '@/firebase/templates';
 
 @Injectable()
 export class ReservationsService {
@@ -155,52 +156,78 @@ export class ReservationsService {
   }
 
   async updateUserStatus(
+    currentUser: User,
     reservationId: number,
     userId: number,
     status: UserReservationStatus.DEFAULT | UserReservationStatus.READY,
   ): Promise<UserReservation> {
-    return await this.dataSource.transaction(async (manager) => {
-      const userReservationRepo = manager.getRepository(UserReservation);
-      const reservationRepo = manager.getRepository(Reservation);
-
-      // 1. 예약 조회
-      const reservation = await reservationRepo.findOne({
-        where: { id: reservationId },
-      });
-
-      if (!reservation) {
-        throw new ReservationNotFoundException();
-      }
-
-      // 2. 예약 시간 접근 가늩 시간 확인
-      const READY_ACCESS_TIME_MS = 60 * 60 * 1000; // 1시간
-      const now = new Date();
-      const accessTimeBeforeReservation = new Date(
-        reservation.reservationDatetime.getTime() - READY_ACCESS_TIME_MS,
-      );
-
-      if (now < accessTimeBeforeReservation) {
-        throw new ReservationTimeNotReachedException();
-      }
-
-      // 3. 사용자 예약 조회
-      const userReservation = await userReservationRepo.findOne({
-        where: {
-          user: { id: userId },
-          reservation: { id: reservationId },
-        },
-        relations: ['user', 'reservation'],
-      });
-
-      if (!userReservation) {
-        throw new UserReservationNotFoundException();
-      }
-
-      // 4. 상태 업데이트
-      userReservation.status = status;
-
-      return await userReservationRepo.save(userReservation);
+    // 1. 예약 조회
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId },
     });
+
+    if (!reservation) {
+      throw new ReservationNotFoundException();
+    }
+
+    // 2. 예약 시간 접근 가능 시간 확인
+    const READY_ACCESS_TIME_MS = 60 * 60 * 1000; // 1시간
+    const now = new Date();
+    const accessTimeBeforeReservation = new Date(
+      reservation.reservationDatetime.getTime() - READY_ACCESS_TIME_MS,
+    );
+
+    if (now < accessTimeBeforeReservation) {
+      throw new ReservationTimeNotReachedException();
+    }
+
+    // 3. 사용자 예약 조회
+    const members = await this.userReservationRepository.find({
+      where: {
+        reservation: { id: reservationId },
+      },
+      relations: ['user'],
+    });
+
+    const me = members.find((elem) => elem.user.id === currentUser.id);
+    if (!me) {
+      throw new UserReservationNotFoundException();
+    }
+
+    me.status = status;
+
+    if (status == UserReservationStatus.READY) {
+      this.notifyOtherMembersIfReady(members, currentUser, reservation);
+    }
+
+    // 4. 상태 업데이트
+    return await this.userReservationRepository.save(me);
+  }
+
+  private notifyOtherMembersIfReady(
+    members: UserReservation[],
+    currentUser: User,
+    reservation: Reservation,
+  ): void {
+    const otherMembers = members.filter(
+      (elem) => elem.user.id !== currentUser.id,
+    );
+
+    const title = FCM_TEMPLATES.IM_READY.title(currentUser.nickname);
+    const message = FCM_TEMPLATES.IM_READY.message(
+      currentUser.nickname,
+      reservation.title,
+    );
+
+    const fcmTokens = otherMembers
+      .map((member) => member.user.fcmToken)
+      .filter((token): token is string => !!token);
+
+    if (fcmTokens.length === 0) return;
+
+    this.firebaseService
+      .sendMulticastNotification(fcmTokens, title, message)
+      .catch((err) => console.error(NotificationSendFailedException, err));
   }
 
   async updateReservation(
@@ -512,8 +539,8 @@ export class ReservationsService {
       throw new EmptyTokenListException();
     }
     // 4. 알림 메시지 생성 및 전송
-    const title = `${pokerUser.nickname}님이 콕 찔렀어요`;
-    const message = `${reservation.title} 예약을 준비하세요`;
+    const title = FCM_TEMPLATES.KOK.title(pokerUser.nickname);
+    const message = FCM_TEMPLATES.KOK.message(reservation.title);
 
     try {
       await this.firebaseService.sendNotification(
