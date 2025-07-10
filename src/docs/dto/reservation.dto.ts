@@ -1,11 +1,11 @@
 import { BasePaginationQueryDto } from '@/common/dto/request';
-import { PaginationMetadata } from '@/common/dto/response';
 import { ReservationCategory } from '@/common/enums/reservation-category';
-import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { Reservation } from '@/reservations/entities/reservation.entity';
 import { User } from '@/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsIn } from 'class-validator';
+import { IsOptional, IsEnum } from 'class-validator';
+import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 export class CreateReservationResponse {
   @ApiProperty({
@@ -81,16 +81,20 @@ export class CreateReservationResponse {
 /**
  * 예약 리스트에서 예약정보 조회
  */
+export enum ReservationStatusFilter {
+  AFTER = 'AFTER',
+  BEFORE = 'BEFORE',
+}
 export class GetReservationsQueryDto extends BasePaginationQueryDto {
   @ApiProperty({
-    description: '예약 상태 필터',
-    enum: ['before', 'after'],
+    description: '예약 상태 필터 (AFTER: 예정된 예약, BEFORE: 지난 예약)',
+    enum: ReservationStatusFilter,
     required: false,
-    example: 'after',
+    example: ReservationStatusFilter.AFTER,
   })
   @IsOptional()
-  @IsIn(['before', 'after'])
-  readonly status?: 'before' | 'after';
+  @IsEnum(ReservationStatusFilter)
+  readonly status?: ReservationStatusFilter;
 }
 
 export class ReservationItemDto {
@@ -102,38 +106,38 @@ export class ReservationItemDto {
 
   @ApiProperty({
     description: '예약 제목',
-    example: '매쉬업 아구찜 직팬 모임',
+    example: '매쉬업 야구장 직관 모임',
   })
   title: string;
 
   @ApiProperty({
     description: '예약 카테고리',
-    example: '운동경기',
     enum: ReservationCategory,
+    example: ReservationCategory.SPORTS,
   })
-  category: string;
+  category: ReservationCategory;
 
   @ApiProperty({
     description: '예약 일시',
     example: '2025-07-11T19:00:00+09:00',
   })
-  reservationDatetime: string;
+  reservationDatetime: Date;
 
   @ApiProperty({
     description: '현재 참가자 수',
-    example: 3,
+    example: 6,
   })
   participantCount: number;
 
   @ApiProperty({
     description: '최대 참가자 수',
-    example: 5,
+    example: 20,
   })
   maxParticipants: number;
 
   @ApiProperty({
     description: '호스트 사용자 ID',
-    example: 1,
+    example: 10,
   })
   hostId: number;
 
@@ -154,25 +158,51 @@ export class ReservationItemDto {
     example: UserReservationStatus.DEFAULT,
     enum: UserReservationStatus,
   })
-  userStatus: string;
+  userStatus: UserReservationStatus;
 
   @ApiProperty({
     description: '현재 사용자가 호스트인지 여부',
     example: false,
   })
   isHost: boolean;
-}
-
-export class GetReservationsDataDto {
-  @ApiProperty({
-    description: '예약 목록',
-    type: [ReservationItemDto],
-  })
-  reservations: ReservationItemDto[];
 
   @ApiProperty({
-    description: '페이지네이션 메타데이터',
-    type: () => PaginationMetadata,
+    description: '프로필 이미지 코드 목록',
+    enum: ProfileImageCode,
+    isArray: true,
+    example: [
+      ProfileImageCode.PINK,
+      ProfileImageCode.PURPLE,
+      ProfileImageCode.ORANGE,
+    ],
   })
-  metadata: PaginationMetadata;
+  profileImageCodeList: ProfileImageCode[];
+
+  constructor(
+    reservationId: number,
+    title: string,
+    category: ReservationCategory,
+    reservationDatetime: Date,
+    participantCount: number,
+    maxParticipants: number,
+    hostId: number,
+    hostNickname: string,
+    images: string[],
+    userReservationStatus: UserReservationStatus,
+    isHost: boolean,
+    profileImageCodeList: ProfileImageCode[],
+  ) {
+    this.reservationId = reservationId;
+    this.title = title;
+    this.category = category;
+    this.reservationDatetime = reservationDatetime;
+    this.participantCount = participantCount;
+    this.maxParticipants = maxParticipants;
+    this.hostId = hostId;
+    this.hostNickname = hostNickname;
+    this.images = images;
+    this.userStatus = userReservationStatus;
+    this.isHost = isHost;
+    this.profileImageCodeList = profileImageCodeList;
+  }
 }
