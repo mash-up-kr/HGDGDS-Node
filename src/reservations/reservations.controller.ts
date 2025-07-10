@@ -425,6 +425,7 @@ export class ReservationsController {
   @ApiErrorResponse(ReservationAccessDeniedException)
   @ApiErrorResponse(ReservationNotDoneException)
   @ApiErrorResponse(CurrentUserResultNotFoundException)
+  @ApiErrorResponse(ReservationNotFoundException)
   async getReservationResults(
     @Param('reservationId', ParseIntPipe) reservationId: number,
     @CurrentUser() user: User,
