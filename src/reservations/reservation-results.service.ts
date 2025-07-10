@@ -125,10 +125,6 @@ export class ReservationResultsService {
     reservationId: number,
     currentUserId: number,
   ): Promise<GetReservationResultsResponse> {
-    // 접근 권한 및 예약 상태 검증
-    await this.validateAccessAndGetReservation(reservationId, currentUserId);
-
-    // 현재 사용자 결과 조회
     const currentUserResult = await this.reservationResultRepository.findOne({
       where: {
         reservation: { id: reservationId },
@@ -137,34 +133,33 @@ export class ReservationResultsService {
       relations: { user: true, reservation: true },
     });
 
-    // 현재 사용자 결과 존재 여부 검증
     if (!currentUserResult) {
+      // 예약이 존재하지 않거나 접근 권한이 없는지 확인
+      await this.validateReservationAccess(reservationId, currentUserId);
       throw new CurrentUserResultNotFoundException();
     }
 
-    // 다른 참가자들의 결과 조회
+    // 예약 종료 시간 이전에 결과를 요청한 경우 예외 처리
+    if (new Date() < currentUserResult.reservation.reservationDatetime) {
+      throw new ReservationNotDoneException();
+    }
+
     const otherParticipantResults = await this.reservationResultRepository.find(
       {
         where: {
-          reservation: {
-            id: reservationId,
-          },
-          user: {
-            id: Not(currentUserId),
-          },
+          reservation: { id: reservationId },
+          user: { id: Not(currentUserId) },
         },
         relations: { user: true, reservation: true },
       },
     );
 
-    // 이미지 URL 생성
     const allResultIds = [
       currentUserResult.id,
       ...otherParticipantResults.map((result) => result.id),
     ];
     const imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
 
-    // 응답 DTO 생성
     const currentUserResultDto = new CreateReservationResultDto(
       currentUserResult,
       imageUrlMap.get(currentUserResult.id) || null,
@@ -184,35 +179,30 @@ export class ReservationResultsService {
     );
   }
 
-  // 예약 접근 권한 및 상태 검증 후 예약 정보 반환
-  private async validateAccessAndGetReservation(
+  // 예약 결과가 없는 경우에 대한 접근 권한 검증
+  private async validateReservationAccess(
     reservationId: number,
     currentUserId: number,
-  ): Promise<Reservation> {
+  ): Promise<void> {
     const reservation = await this.reservationRepository.findOne({
-      where: {
-        id: reservationId,
-      },
+      where: { id: reservationId },
     });
-    if (!reservation) throw new ReservationNotFoundException();
+
+    if (!reservation) {
+      throw new ReservationNotFoundException();
+    }
 
     const membership = await this.userReservationRepository.findOne({
       where: {
-        reservation: {
-          id: reservationId,
-        },
-        user: {
-          id: currentUserId,
-        },
+        reservation: { id: reservationId },
+        user: { id: currentUserId },
       },
     });
-    if (!membership) throw new ReservationAccessDeniedException();
 
-    if (new Date() < reservation.reservationDatetime) {
-      throw new ReservationNotDoneException();
+    // 현재 사용자가 해당 예약에 참여하지 않은 경우
+    if (!membership) {
+      throw new ReservationAccessDeniedException();
     }
-
-    return reservation;
   }
 
   // 예약 결과 ID 목록에 대한 이미지 URL 맵 생성
