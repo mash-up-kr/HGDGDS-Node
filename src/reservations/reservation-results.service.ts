@@ -73,7 +73,6 @@ export class ReservationResultsService {
         const imageRepo = manager.getRepository(Image);
         const userReservationRepo = manager.getRepository(UserReservation);
 
-        // 1. Reservation 저장
         const reservationResult: ReservationResult =
           reservationResultRepo.create(reservationData);
         reservationResult.user = user;
@@ -81,7 +80,6 @@ export class ReservationResultsService {
         const savedReservationResult: ReservationResult =
           await reservationResultRepo.save(reservationResult);
 
-        // 2. Image 저장
         const images =
           reservationData.images?.map((path) => {
             const image = new Image();
@@ -92,7 +90,6 @@ export class ReservationResultsService {
           }) || [];
         await manager.getRepository(Image).save(images);
 
-        // 3. UserReservation 수정
         await userReservationRepo.update(
           {
             user: reservationResult.user,
@@ -125,6 +122,11 @@ export class ReservationResultsService {
     reservationId: number,
     currentUserId: number,
   ): Promise<GetReservationResultsResponse> {
+    const reservation = await this.validateAccessAndGetReservation(
+      reservationId,
+      currentUserId,
+    );
+
     const currentUserResult = await this.reservationResultRepository.findOne({
       where: {
         reservation: { id: reservationId },
@@ -134,14 +136,7 @@ export class ReservationResultsService {
     });
 
     if (!currentUserResult) {
-      // 예약이 존재하지 않거나 접근 권한이 없는지 확인
-      await this.validateReservationAccess(reservationId, currentUserId);
       throw new CurrentUserResultNotFoundException();
-    }
-
-    // 예약 종료 시간 이전에 결과를 요청한 경우 예외 처리
-    if (new Date() < currentUserResult.reservation.reservationDatetime) {
-      throw new ReservationNotDoneException();
     }
 
     const otherParticipantResults = await this.reservationResultRepository.find(
@@ -156,7 +151,7 @@ export class ReservationResultsService {
 
     const allResultIds = [
       currentUserResult.id,
-      ...otherParticipantResults.map((result) => result.id),
+      ...otherParticipantResults.map((r) => r.id),
     ];
     const imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
 
@@ -164,7 +159,6 @@ export class ReservationResultsService {
       currentUserResult,
       imageUrlMap.get(currentUserResult.id) || null,
     );
-
     const otherParticipantResultDtos = otherParticipantResults.map(
       (result) =>
         new CreateReservationResultDto(
@@ -179,18 +173,14 @@ export class ReservationResultsService {
     );
   }
 
-  // 예약 결과가 없는 경우에 대한 접근 권한 검증
-  private async validateReservationAccess(
+  private async validateAccessAndGetReservation(
     reservationId: number,
     currentUserId: number,
-  ): Promise<void> {
+  ): Promise<Reservation> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId },
     });
-
-    if (!reservation) {
-      throw new ReservationNotFoundException();
-    }
+    if (!reservation) throw new ReservationNotFoundException();
 
     const membership = await this.userReservationRepository.findOne({
       where: {
@@ -198,14 +188,15 @@ export class ReservationResultsService {
         user: { id: currentUserId },
       },
     });
+    if (!membership) throw new ReservationAccessDeniedException();
 
-    // 현재 사용자가 해당 예약에 참여하지 않은 경우
-    if (!membership) {
-      throw new ReservationAccessDeniedException();
+    if (new Date() < reservation.reservationDatetime) {
+      throw new ReservationNotDoneException();
     }
+
+    return reservation;
   }
 
-  // 예약 결과 ID 목록에 대한 이미지 URL 맵 생성
   private async generateImageUrlMapForResults(
     resultIds: number[],
   ): Promise<Map<number, string[]>> {
