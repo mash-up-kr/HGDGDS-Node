@@ -37,8 +37,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const url = req.originalUrl;
     const query = JSON.stringify(req.query);
     const body = JSON.stringify(req.body);
+    const path = req.path;
 
-    if (getAppMode() == 'prod') {
+    if (getAppMode() == 'prod' && !exceptAlertUrls.includes(path)) {
       let message = 'Unexpected error';
       let stack = '';
       if (exception instanceof Error) {
@@ -66,3 +67,16 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     });
   }
 }
+
+const exceptAlertUrls: string[] = [
+  '/.git/config',
+  '/.env',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  '/invite',
+  '/apple-touch-icon-precomposed.png',
+  '/rootDesc.xml',
+  '/',
+  '/apple-touch-icon-120x120.png',
+  '/apple-touch-icon-120x120-precomposed.png',
+];
