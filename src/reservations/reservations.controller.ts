@@ -61,12 +61,10 @@ import { GetReservationMemberResponse } from './dto/response/get-reservation-mem
 import { ReservationMemberDto } from './dto/reservation-member.dto';
 import { GetReservationDetailResponse } from './dto/response/get-reservation-detail.response';
 import { ReservationResultsService } from './reservation-results.service';
-import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
-import { GetReservationResultsResponseDto } from './dto/response/get-reservation-results.response.dto';
 import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
-import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { InvalidTokenException } from '@/common/exception/auth.exception';
 import { GetReservationsResponse } from '@/reservations/dto/response/get-reservation-response';
+import { GetReservationResultsResponse } from '@/reservations/dto/response/get-reservation-results.response';
 
 @ApiAuth()
 @ApiTags('예약')
