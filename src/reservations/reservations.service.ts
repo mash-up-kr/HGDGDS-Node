@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import {
+  DataSource,
+  FindOptionsWhere,
+  In,
+  LessThan,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
@@ -27,7 +34,10 @@ import {
   CurrentUserInfoDto,
 } from './dto/response/get-reservation-detail.response';
 import { FilesService } from '@/files/files.service';
-import { getProfileImagePath } from '@/common/enums/profile-image-code';
+import {
+  getProfileImagePath,
+  ProfileImageCode,
+} from '@/common/enums/profile-image-code';
 import { User } from '@/users/entities/user.entity';
 import { FirebaseService } from '@/firebase/firebase.service';
 import {
@@ -36,6 +46,13 @@ import {
   SelfMessageNotAllowedException,
 } from '@/common/exception/firebase.exception';
 import { UserNotFoundException } from '@/common/exception/user.exception';
+import { GetReservationsResponse } from '@/reservations/dto/response/get-reservation-response';
+import { PaginationMetadata } from '@/common';
+import {
+  GetReservationsQueryDto,
+  ReservationItemDto,
+  ReservationStatusFilter,
+} from '@/docs/dto/reservation.dto';
 
 @Injectable()
 export class ReservationsService {
@@ -46,6 +63,8 @@ export class ReservationsService {
     private readonly userReservationRepository: Repository<UserReservation>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
     private readonly dataSource: DataSource,
     private readonly filesService: FilesService,
     private readonly firebaseService: FirebaseService,
@@ -505,5 +524,209 @@ export class ReservationsService {
     } catch {
       throw new NotificationSendFailedException();
     }
+  }
+
+  async getReservations(
+    query: GetReservationsQueryDto,
+    currentUserId: number,
+  ): Promise<GetReservationsResponse> {
+    const maxParticipants = 30;
+    const offset = (query.page - 1) * query.limit;
+    const now = new Date();
+
+    const whereClause: FindOptionsWhere<UserReservation> = {
+      user: { id: currentUserId },
+    };
+
+    if (query.status === ReservationStatusFilter.AFTER) {
+      whereClause.reservation = {
+        reservationDatetime: MoreThanOrEqual(now),
+      };
+    } else if (query.status === ReservationStatusFilter.BEFORE) {
+      whereClause.reservation = {
+        reservationDatetime: LessThan(now),
+      };
+    }
+
+    // 1. DB에서 필터링, 정렬, 페이징 + 호스트 정보 로드
+    const [participantReservations, totalCount] =
+      await this.userReservationRepository.findAndCount({
+        where: whereClause,
+        relations: {
+          reservation: { host: true },
+        },
+        order: {
+          reservation: { reservationDatetime: query.order },
+        },
+        take: query.limit,
+        skip: offset,
+      });
+
+    if (totalCount === 0) {
+      const metadata = new PaginationMetadata(query.page, query.limit, 0);
+      return new GetReservationsResponse([], metadata);
+    }
+
+    const reservationIdsOnCurrentPage = participantReservations.map(
+      (ur) => ur.reservation.id,
+    );
+
+    // 2. 여러 정보(참가자, 이미지)를 병렬로 가져옵니다.
+    const [participantInfoMap, imageUrlMap] = await Promise.all([
+      this.getParticipantInfoMap(reservationIdsOnCurrentPage),
+      this.getImageUrlMap(reservationIdsOnCurrentPage),
+    ]);
+
+    // 3. DTO를 생성합니다.
+    const pagedReservations = participantReservations.map((userReservation) => {
+      const reservation = userReservation.reservation;
+      const info = participantInfoMap.get(reservation.id) || {
+        count: 0,
+        profileImageCodeList: [],
+      };
+      const imageUrls = imageUrlMap.get(reservation.id) || [];
+
+      return new ReservationItemDto(
+        reservation.id,
+        reservation.title,
+        reservation.category,
+        reservation.reservationDatetime,
+        info.count,
+        maxParticipants,
+        reservation.host.id,
+        reservation.host.nickname,
+        imageUrls,
+        userReservation.status,
+        reservation.host.id === currentUserId,
+        info.profileImageCodeList,
+      );
+    });
+
+    // 4. 최종 응답 구성
+    const metadata = new PaginationMetadata(
+      query.page,
+      query.limit,
+      totalCount,
+    );
+    return new GetReservationsResponse(pagedReservations, metadata);
+  }
+
+  /**
+   *  참가자 정보(수, 프로필 코드)를 Map 형태로 반환
+   */
+  private async getParticipantInfoMap(
+    reservationIds: number[],
+  ): Promise<
+    Map<number, { count: number; profileImageCodeList: ProfileImageCode[] }>
+  > {
+    const finalInfoMap = new Map<
+      number,
+      { count: number; profileImageCodeList: ProfileImageCode[] }
+    >();
+
+    if (reservationIds.length === 0) return finalInfoMap;
+
+    const userReservations = await this.userReservationRepository.find({
+      select: {
+        createdAt: true,
+        reservation: {
+          id: true,
+        },
+        user: {
+          profileImageCode: true,
+        },
+      },
+      relations: {
+        reservation: true,
+        user: true,
+      },
+      where: {
+        reservation: {
+          id: In(reservationIds),
+        },
+      },
+    });
+
+    const tempGroupedData = new Map<
+      number,
+      { profileImageCode: ProfileImageCode; joinedAt: Date }[]
+    >();
+
+    userReservations.forEach((ur) => {
+      const reservationId = ur.reservation.id;
+      if (!tempGroupedData.has(reservationId)) {
+        tempGroupedData.set(reservationId, []);
+      }
+      tempGroupedData.get(reservationId)!.push({
+        profileImageCode: ur.user.profileImageCode,
+        joinedAt: ur.createdAt,
+      });
+    });
+
+    for (const [reservationId, participants] of tempGroupedData.entries()) {
+      // 참여 시점을 기준으로 내림차순 정렬 (최신순)
+      const sortedParticipants = participants.sort(
+        (a, b) => b.joinedAt.getTime() - a.joinedAt.getTime(),
+      );
+
+      // 정렬된 목록에서 상위 3개의 프로필 코드만 추출
+      const top3ProfileCodes = sortedParticipants
+        .slice(0, 3)
+        .map((p) => p.profileImageCode);
+
+      finalInfoMap.set(reservationId, {
+        count: participants.length,
+        profileImageCodeList: top3ProfileCodes,
+      });
+    }
+
+    return finalInfoMap;
+  }
+
+  /**
+   * 예약 이미지 URL들을 Map 형태로 반환
+   */
+  private async getImageUrlMap(
+    reservationIds: number[],
+  ): Promise<Map<number, string[]>> {
+    const imageUrlMap = new Map<number, string[]>();
+    if (reservationIds.length === 0) return imageUrlMap;
+
+    // 1. 예약 ID에 해당하는 모든 이미지 엔티티를 한번에 조회
+    const images = await this.imageRepository.find({
+      where: {
+        parentType: ImageParentType.RESERVATION,
+        parentId: In(reservationIds),
+      },
+    });
+
+    // 2. Presigned URL 생성 요청을 병렬로 처리하기 위해 Promise 배열 생성
+    const urlPromises = images.map(async (image) => {
+      try {
+        const url = await this.filesService.getAccessPresignedUrl(
+          image.s3FilePath,
+        );
+        return { parentId: image.parentId, url };
+      } catch (error) {
+        console.error(`Presigned URL 생성 실패: ${image.s3FilePath}`, error);
+        return { parentId: image.parentId, url: null }; // 실패 시 null 반환
+      }
+    });
+
+    // 3. 모든 URL 생성 요청을 병렬로 실행
+    const urlResults = await Promise.all(urlPromises);
+
+    // 4. 결과를 Map으로 그룹화
+    urlResults.forEach(({ parentId, url }) => {
+      if (url) {
+        // URL 생성에 성공한 경우에만 추가
+        if (!imageUrlMap.has(parentId)) {
+          imageUrlMap.set(parentId, []);
+        }
+        imageUrlMap.get(parentId)!.push(url);
+      }
+    });
+
+    return imageUrlMap;
   }
 }
