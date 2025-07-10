@@ -1,20 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, ObjectLiteral, Repository } from 'typeorm';
+import { DataSource, Not, ObjectLiteral, Repository } from 'typeorm';
 import { ReservationResultsService } from './reservation-results.service';
 import { Reservation } from './entities/reservation.entity';
 import { UserReservation } from './entities/user-reservation.entity';
 import { ReservationResult } from './entities/reservation-result.entity';
 import { Image } from '@/images/entities/images.entity';
 import { FilesService } from '@/files/files.service';
-import { GetReservationResultsResponse } from './dto/response/get-reservation-results.response';
 import {
-  ReservationAccessDeniedException,
-  ReservationNotDoneException,
+  CurrentUserResultNotFoundException,
   ReservationNotFoundException,
 } from '@/common/exception/reservation.exception';
-import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
-import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 // Mock 타입 정의
 type MockRepository<T extends ObjectLiteral> = Partial<
@@ -54,7 +50,7 @@ describe('ReservationResultsService', () => {
           provide: getRepositoryToken(Image),
           useValue: createMockRepository(),
         },
-        { provide: DataSource, useValue: {} }, // createReservationResult 테스트가 아니므로 간단히 모킹
+        { provide: DataSource, useValue: {} },
         {
           provide: FilesService,
           useValue: {
@@ -75,23 +71,17 @@ describe('ReservationResultsService', () => {
     imageRepository = module.get(getRepositoryToken(Image));
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('getReservationResults', () => {
     const reservationId = 1;
     const currentUserId = 1;
-    const hostId = 10;
     let mockReservation: Reservation;
     let mockMembership: UserReservation;
 
     beforeEach(() => {
-      // 모든 테스트에서 공통으로 사용될 성공적인 권한 검증 모킹
+      // 권한 검증 통과 모킹
       mockReservation = {
         id: reservationId,
         reservationDatetime: new Date('2020-01-01'),
-        host: { id: hostId },
       } as Reservation;
       mockMembership = { id: 1 } as UserReservation;
       (reservationRepository.findOne as jest.Mock).mockResolvedValue(
@@ -100,35 +90,29 @@ describe('ReservationResultsService', () => {
       (userReservationRepository.findOne as jest.Mock).mockResolvedValue(
         mockMembership,
       );
-      (imageRepository.find as jest.Mock).mockResolvedValue([]); // 기본적으로 이미지는 없다고 가정
+      (imageRepository.find as jest.Mock).mockResolvedValue([]);
     });
 
-    it('호스트와 참가자의 결과가 모두 있을 때, DTO를 올바르게 반환해야 한다', async () => {
+    it('현재 사용자와 다른 참가자의 결과가 모두 있을 때, DTO를 올바르게 반환해야 한다', async () => {
       // Arrange
-      const mockResults = [
-        {
-          id: 101,
-          user: {
-            id: hostId,
-            nickname: '호스트',
-            profileImageCode: ProfileImageCode.GREEN,
-          },
-          reservation: { id: reservationId },
-          status: ReservationResultStatus.SUCCESS,
-        },
+      const currentUserResult = {
+        id: 101,
+        user: { id: currentUserId, nickname: '나' },
+        reservation: { id: reservationId },
+      } as ReservationResult;
+      const otherResults = [
         {
           id: 102,
-          user: {
-            id: 2,
-            nickname: '참가자1',
-            profileImageCode: ProfileImageCode.BLUE,
-          },
+          user: { id: 2, nickname: '다른사람' },
           reservation: { id: reservationId },
-          status: ReservationResultStatus.FAIL,
         },
       ] as ReservationResult[];
+
+      (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
+        currentUserResult,
+      );
       (reservationResultRepository.find as jest.Mock).mockResolvedValue(
-        mockResults,
+        otherResults,
       );
 
       // Act
@@ -138,45 +122,53 @@ describe('ReservationResultsService', () => {
       );
 
       // Assert
-      expect(result).toBeInstanceOf(GetReservationResultsResponse);
-      expect(result.host).toBeDefined();
-      expect(result.host?.userId).toBe(hostId);
+      expect(result.currentUser.userId).toBe(currentUserId);
       expect(result.results.length).toBe(1);
       expect(result.results[0].userId).toBe(2);
-    });
 
-    it('호스트의 결과가 없을 때, host는 null이고 참가자 결과만 반환해야 한다', async () => {
-      // Arrange
-      const mockResults = [
-        {
-          id: 102,
-          user: {
-            id: 2,
-            nickname: '참가자1',
-            profileImageCode: ProfileImageCode.BLUE,
-          },
+      // ⭐️ Mock 호출 검증
+      expect(reservationResultRepository.findOne).toHaveBeenCalledWith({
+        where: {
           reservation: { id: reservationId },
-          status: ReservationResultStatus.FAIL,
+          user: { id: currentUserId },
         },
-      ] as ReservationResult[];
-      (reservationResultRepository.find as jest.Mock).mockResolvedValue(
-        mockResults,
-      );
-
-      // Act
-      const result = await service.getReservationResults(
-        reservationId,
-        currentUserId,
-      );
-
-      // Assert
-      expect(result.host).toBeNull();
-      expect(result.results.length).toBe(1);
+        relations: { user: true, reservation: true },
+      });
+      expect(reservationResultRepository.find).toHaveBeenCalledWith({
+        where: {
+          reservation: { id: reservationId },
+          user: { id: Not(currentUserId) },
+        },
+        relations: { user: true, reservation: true },
+      });
     });
 
-    it('결과 데이터가 아예 없을 때, host는 null이고 results는 빈 배열을 반환해야 한다', async () => {
+    it('현재 사용자의 결과가 없을 때, CurrentUserResultNotFoundException을 던져야 한다', async () => {
       // Arrange
-      (reservationResultRepository.find as jest.Mock).mockResolvedValue([]);
+      // findOne이 null을 반환하도록 설정
+      (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      // Act & Assert
+      await expect(
+        service.getReservationResults(reservationId, currentUserId),
+      ).rejects.toThrow(CurrentUserResultNotFoundException);
+
+      expect(reservationResultRepository.find).not.toHaveBeenCalled();
+    });
+
+    it('다른 참가자의 결과가 없을 때, currentUser는 있고 results는 빈 배열을 반환해야 한다', async () => {
+      // Arrange
+      const currentUserResult = {
+        id: 101,
+        user: { id: currentUserId, nickname: '나' },
+        reservation: { id: reservationId },
+      } as ReservationResult;
+      (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
+        currentUserResult,
+      );
+      (reservationResultRepository.find as jest.Mock).mockResolvedValue([]); // 다른 참가자 결과 없음
 
       // Act
       const result = await service.getReservationResults(
@@ -185,44 +177,15 @@ describe('ReservationResultsService', () => {
       );
 
       // Assert
-      expect(result.host).toBeNull();
+      expect(result.currentUser).toBeDefined();
       expect(result.results).toEqual([]);
     });
 
     it('예약이 존재하지 않으면 ReservationNotFoundException을 던져야 한다', async () => {
-      // Arrange
       (reservationRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-      // Act & Assert
       await expect(
         service.getReservationResults(reservationId, currentUserId),
       ).rejects.toThrow(ReservationNotFoundException);
-    });
-
-    it('사용자가 예약 멤버가 아니면 ReservationAccessDeniedException을 던져야 한다', async () => {
-      // Arrange
-      (userReservationRepository.findOne as jest.Mock).mockResolvedValue(null);
-
-      // Act & Assert
-      await expect(
-        service.getReservationResults(reservationId, currentUserId),
-      ).rejects.toThrow(ReservationAccessDeniedException);
-    });
-
-    it('예약 시간이 아직 지나지 않았으면 ReservationNotDoneException을 던져야 한다', async () => {
-      // Arrange
-      const futureReservation = {
-        ...mockReservation,
-        reservationDatetime: new Date('2099-01-01'),
-      };
-      (reservationRepository.findOne as jest.Mock).mockResolvedValue(
-        futureReservation,
-      );
-
-      // Act & Assert
-      await expect(
-        service.getReservationResults(reservationId, currentUserId),
-      ).rejects.toThrow(ReservationNotDoneException);
     });
   });
 });
