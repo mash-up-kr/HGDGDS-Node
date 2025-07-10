@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, In, Not, QueryFailedError, Repository } from 'typeorm';
+import { Reservation } from './entities/reservation.entity';
 import { UserReservation } from './entities/user-reservation.entity';
+import { ReservationResult } from './entities/reservation-result.entity';
 import { Image } from '@/images/entities/images.entity';
+import { User } from '@/users/entities/user.entity';
+import { FilesService } from '@/files/files.service';
+import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
+import { GetReservationResultsResponse } from './dto/response/get-reservation-results.response';
+import { CreateReservationResultDto } from './dto/response/create-reservation-result.dto';
 import { ImageParentType } from '@/common/enums/image-parent-type';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
-import { FilesService } from '@/files/files.service';
-import { ReservationResult } from './entities/reservation-result.entity';
-import { CreateReservationResultRequest } from './dto/request/create-reservation-result.request';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
-import { Reservation } from './entities/reservation.entity';
-import { User } from '@/users/entities/user.entity';
 import {
+  CurrentUserResultNotFoundException,
+  ReservationAccessDeniedException,
+  ReservationNotDoneException,
   ReservationNotFoundException,
   ReservationResultAlreadyExistsException,
   UserReservationNotFoundException,
@@ -24,6 +29,10 @@ export class ReservationResultsService {
     private readonly reservationRepository: Repository<Reservation>,
     @InjectRepository(UserReservation)
     private readonly userReservationRepository: Repository<UserReservation>,
+    @InjectRepository(ReservationResult)
+    private readonly reservationResultRepository: Repository<ReservationResult>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
     private readonly dataSource: DataSource,
     private readonly filesService: FilesService,
   ) {}
@@ -64,7 +73,6 @@ export class ReservationResultsService {
         const imageRepo = manager.getRepository(Image);
         const userReservationRepo = manager.getRepository(UserReservation);
 
-        // 1. Reservation 저장
         const reservationResult: ReservationResult =
           reservationResultRepo.create(reservationData);
         reservationResult.user = user;
@@ -72,7 +80,6 @@ export class ReservationResultsService {
         const savedReservationResult: ReservationResult =
           await reservationResultRepo.save(reservationResult);
 
-        // 2. Image 저장
         const images =
           reservationData.images?.map((path) => {
             const image = new Image();
@@ -83,7 +90,6 @@ export class ReservationResultsService {
           }) || [];
         await manager.getRepository(Image).save(images);
 
-        // 3. UserReservation 수정
         await userReservationRepo.update(
           {
             user: reservationResult.user,
@@ -110,5 +116,115 @@ export class ReservationResultsService {
     }
 
     return result;
+  }
+
+  async getReservationResults(
+    reservationId: number,
+    currentUserId: number,
+  ): Promise<GetReservationResultsResponse> {
+    await this.validateAccessAndGetReservation(reservationId, currentUserId);
+
+    const currentUserResult = await this.reservationResultRepository.findOne({
+      where: {
+        reservation: { id: reservationId },
+        user: { id: currentUserId },
+      },
+      relations: { user: true, reservation: true },
+    });
+
+    if (!currentUserResult) {
+      throw new CurrentUserResultNotFoundException();
+    }
+
+    const otherParticipantResults = await this.reservationResultRepository.find(
+      {
+        where: {
+          reservation: { id: reservationId },
+          user: { id: Not(currentUserId) },
+        },
+        relations: { user: true, reservation: true },
+      },
+    );
+
+    const allResultIds = [
+      currentUserResult.id,
+      ...otherParticipantResults.map((r) => r.id),
+    ];
+    const imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
+
+    const currentUserResultDto = new CreateReservationResultDto(
+      currentUserResult,
+      imageUrlMap.get(currentUserResult.id) || null,
+    );
+    const otherParticipantResultDtos = otherParticipantResults.map(
+      (result) =>
+        new CreateReservationResultDto(
+          result,
+          imageUrlMap.get(result.id) || null,
+        ),
+    );
+
+    return new GetReservationResultsResponse(
+      currentUserResultDto,
+      otherParticipantResultDtos,
+    );
+  }
+
+  private async validateAccessAndGetReservation(
+    reservationId: number,
+    currentUserId: number,
+  ): Promise<void> {
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId },
+    });
+    if (!reservation) throw new ReservationNotFoundException();
+
+    const membership = await this.userReservationRepository.findOne({
+      where: {
+        reservation: { id: reservationId },
+        user: { id: currentUserId },
+      },
+    });
+    if (!membership) throw new ReservationAccessDeniedException();
+
+    if (new Date() < reservation.reservationDatetime) {
+      throw new ReservationNotDoneException();
+    }
+  }
+
+  private async generateImageUrlMapForResults(
+    resultIds: number[],
+  ): Promise<Map<number, string[]>> {
+    const imageUrlMap = new Map<number, string[]>();
+    if (resultIds.length === 0) return imageUrlMap;
+
+    const images = await this.imageRepository.find({
+      where: {
+        parentType: ImageParentType.RESERVATION_RESULT,
+        parentId: In(resultIds),
+      },
+    });
+
+    const urlPromises = images.map(async (image) => {
+      try {
+        const url = await this.filesService.getAccessPresignedUrl(
+          image.s3FilePath,
+        );
+        return { parentId: image.parentId, url };
+      } catch {
+        return { parentId: image.parentId, url: null };
+      }
+    });
+
+    const urlResults = await Promise.all(urlPromises);
+
+    urlResults.forEach(({ parentId, url }) => {
+      if (url && parentId) {
+        if (!imageUrlMap.has(parentId)) imageUrlMap.set(parentId, []);
+        imageUrlMap.get(parentId)!.push(url);
+      }
+    });
+
+    return imageUrlMap;
   }
 }

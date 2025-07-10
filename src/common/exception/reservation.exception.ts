@@ -73,3 +73,9 @@ export class ReservationAccessDeniedException extends BaseException {
     super(HttpStatus.FORBIDDEN, ERROR_CODES.RESERVATION_ACCESS_DENIED);
   }
 }
+
+export class CurrentUserResultNotFoundException extends BaseException {
+  constructor() {
+    super(HttpStatus.FORBIDDEN, ERROR_CODES.CURRENT_USER_RESULT_NOT_FOUND);
+  }
+}
