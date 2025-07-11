@@ -288,25 +288,35 @@ export class ReservationNotificationService {
     switch (notificationType) {
       case NotificationType.ONE_HOUR_BEFORE:
         return {
-          title: FCM_TEMPLATES.RESERVATION_ONE_HOUR_BEFORE.title(reservationTitle),
-          body: FCM_TEMPLATES.RESERVATION_ONE_HOUR_BEFORE.message(reservationTitle),
+          title:
+            FCM_TEMPLATES.RESERVATION_ONE_HOUR_BEFORE.title(reservationTitle),
+          body: FCM_TEMPLATES.RESERVATION_ONE_HOUR_BEFORE.message(
+            reservationTitle,
+          ),
         };
 
       case NotificationType.THIRTY_MIN_BEFORE:
         return {
-          title: FCM_TEMPLATES.RESERVATION_THIRTY_MIN_BEFORE.title(reservationTitle),
-          body: FCM_TEMPLATES.RESERVATION_THIRTY_MIN_BEFORE.message(reservationTitle),
+          title:
+            FCM_TEMPLATES.RESERVATION_THIRTY_MIN_BEFORE.title(reservationTitle),
+          body: FCM_TEMPLATES.RESERVATION_THIRTY_MIN_BEFORE.message(
+            reservationTitle,
+          ),
         };
 
       case NotificationType.FIVE_MIN_BEFORE:
         return {
-          title: FCM_TEMPLATES.RESERVATION_FIVE_MIN_BEFORE.title(reservationTitle),
-          body: FCM_TEMPLATES.RESERVATION_FIVE_MIN_BEFORE.message(reservationTitle),
+          title:
+            FCM_TEMPLATES.RESERVATION_FIVE_MIN_BEFORE.title(reservationTitle),
+          body: FCM_TEMPLATES.RESERVATION_FIVE_MIN_BEFORE.message(
+            reservationTitle,
+          ),
         };
 
       case NotificationType.FIVE_MIN_AFTER:
         return {
-          title: FCM_TEMPLATES.RESERVATION_RESULT_REQUEST.title(reservationTitle),
+          title:
+            FCM_TEMPLATES.RESERVATION_RESULT_REQUEST.title(reservationTitle),
           body: FCM_TEMPLATES.RESERVATION_RESULT_REQUEST.message(),
         };
 
