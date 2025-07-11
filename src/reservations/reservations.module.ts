@@ -10,6 +10,7 @@ import { ReservationResultsService } from './reservation-results.service';
 import { ReservationResult } from './entities/reservation-result.entity';
 import { User } from '@/users/entities/user.entity';
 import { FirebaseService } from '@/firebase/firebase.service';
+import { ReservationNotificationService } from './reservation-notification.service';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
     FilesService,
     ReservationResultsService,
     FirebaseService,
+    ReservationNotificationService,
   ],
 })
 export class ReservationsModule {}
