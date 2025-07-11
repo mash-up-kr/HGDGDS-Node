@@ -88,6 +88,16 @@ export class ReservationNotificationService {
   ];
 
   /**
+   * 매일 자정에 실행되는 캐시 정리 작업
+   */
+  @Cron('0 0 * * *')
+  private clearNotificationCache(): void {
+    const beforeSize = this.sentNotifications.size;
+    this.sentNotifications.clear();
+    this.logger.log(`알림 캐시를 정리했습니다 (${beforeSize}개 항목 삭제)`);
+  }
+
+  /**
    * 매분마다 실행되는 예약 알림 cron job
    */
   @Cron('* * * * *')
