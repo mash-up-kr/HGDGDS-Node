@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -26,8 +27,8 @@ import { UniversalLinksModule } from './universal-links/universal-links.module';
       ...typeormConfig,
       autoLoadEntities: true,
     }),
+    ScheduleModule.forRoot(),
     UsersModule,
-    ReservationsModule,
     AuthModule,
     SimilarGroupsModule,
     ImagesModule,
