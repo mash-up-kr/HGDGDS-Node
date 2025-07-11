@@ -29,7 +29,6 @@ import { UniversalLinksModule } from './universal-links/universal-links.module';
     }),
     ScheduleModule.forRoot(),
     UsersModule,
-    ReservationsModule,
     AuthModule,
     SimilarGroupsModule,
     ImagesModule,
