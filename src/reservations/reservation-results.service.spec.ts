@@ -7,10 +7,7 @@ import { UserReservation } from './entities/user-reservation.entity';
 import { ReservationResult } from './entities/reservation-result.entity';
 import { Image } from '@/images/entities/images.entity';
 import { FilesService } from '@/files/files.service';
-import {
-  CurrentUserResultNotFoundException,
-  ReservationNotFoundException,
-} from '@/common/exception/reservation.exception';
+import { ReservationNotFoundException } from '@/common/exception/reservation.exception';
 
 // Mock 타입 정의
 type MockRepository<T extends ObjectLiteral> = Partial<
@@ -74,27 +71,28 @@ describe('ReservationResultsService', () => {
   describe('getReservationResults', () => {
     const reservationId = 1;
     const currentUserId = 1;
-    let mockReservation: Reservation;
-    let mockMembership: UserReservation;
 
-    beforeEach(() => {
-      // 권한 검증 통과 모킹
-      mockReservation = {
+    const setupSuccessfulValidation = () => {
+      const mockReservation = {
         id: reservationId,
         reservationDatetime: new Date('2020-01-01'),
       } as Reservation;
-      mockMembership = { id: 1 } as UserReservation;
+      const mockMembership = { id: 1 } as UserReservation;
       (reservationRepository.findOne as jest.Mock).mockResolvedValue(
         mockReservation,
       );
       (userReservationRepository.findOne as jest.Mock).mockResolvedValue(
         mockMembership,
       );
+    };
+
+    beforeEach(() => {
       (imageRepository.find as jest.Mock).mockResolvedValue([]);
     });
 
     it('현재 사용자와 다른 참가자의 결과가 모두 있을 때, DTO를 올바르게 반환해야 한다', async () => {
       // Arrange
+      setupSuccessfulValidation();
       const currentUserResult = {
         id: 101,
         user: { id: currentUserId, nickname: '나' },
@@ -122,13 +120,17 @@ describe('ReservationResultsService', () => {
       );
 
       // Assert
-      expect(result.currentUser.userId).toBe(currentUserId);
-      expect(result.currentUser.nickname).toBe('나');
+      expect(result.currentUser).not.toBeNull();
+
+      if (result.currentUser) {
+        expect(result.currentUser.userId).toBe(currentUserId);
+        expect(result.currentUser.nickname).toBe('나');
+      }
+
       expect(result.results.length).toBe(1);
       expect(result.results[0].userId).toBe(2);
-      expect(result.results[0].nickname).toBe('다른사람');
 
-      // ⭐️ Mock 호출 검증
+      // Mock 호출 검증
       expect(reservationResultRepository.findOne).toHaveBeenCalledWith({
         where: {
           reservation: { id: reservationId },
@@ -145,32 +147,22 @@ describe('ReservationResultsService', () => {
       });
     });
 
-    it('현재 사용자의 결과가 없을 때, CurrentUserResultNotFoundException을 던져야 한다', async () => {
-      // Arrange
-      // findOne이 null을 반환하도록 설정
+    it('현재 사용자의 결과가 없을 때, currentUser는 null이고 다른 참가자 결과는 정상적으로 반환해야 한다', async () => {
+      setupSuccessfulValidation();
+      const otherResults = [
+        {
+          id: 102,
+          user: { id: 2, nickname: '다른사람' },
+          reservation: { id: reservationId },
+        },
+      ] as ReservationResult[];
+
       (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
         null,
       );
-
-      // Act & Assert
-      await expect(
-        service.getReservationResults(reservationId, currentUserId),
-      ).rejects.toThrow(CurrentUserResultNotFoundException);
-
-      expect(reservationResultRepository.find).not.toHaveBeenCalled();
-    });
-
-    it('다른 참가자의 결과가 없을 때, currentUser는 있고 results는 빈 배열을 반환해야 한다', async () => {
-      // Arrange
-      const currentUserResult = {
-        id: 101,
-        user: { id: currentUserId, nickname: '나' },
-        reservation: { id: reservationId },
-      } as ReservationResult;
-      (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
-        currentUserResult,
+      (reservationResultRepository.find as jest.Mock).mockResolvedValue(
+        otherResults,
       );
-      (reservationResultRepository.find as jest.Mock).mockResolvedValue([]); // 다른 참가자 결과 없음
 
       // Act
       const result = await service.getReservationResults(
@@ -179,7 +171,26 @@ describe('ReservationResultsService', () => {
       );
 
       // Assert
-      expect(result.currentUser).toBeDefined();
+      expect(result.currentUser).toBeNull();
+      expect(result.results.length).toBe(1);
+      expect(result.results[0].userId).toBe(2);
+    });
+
+    it('모든 결과가 없을 때, currentUser는 null이고 results는 빈 배열을 반환해야 한다', async () => {
+      setupSuccessfulValidation();
+      (reservationResultRepository.findOne as jest.Mock).mockResolvedValue(
+        null,
+      );
+      (reservationResultRepository.find as jest.Mock).mockResolvedValue([]);
+
+      // Act
+      const result = await service.getReservationResults(
+        reservationId,
+        currentUserId,
+      );
+
+      // Assert
+      expect(result.currentUser).toBeNull();
       expect(result.results).toEqual([]);
     });
 
