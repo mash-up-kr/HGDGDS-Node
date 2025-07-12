@@ -14,7 +14,6 @@ import { ImageParentType } from '@/common/enums/image-parent-type';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
 import { ReservationResultStatus } from '@/common/enums/reservation-result-status';
 import {
-  CurrentUserResultNotFoundException,
   ReservationAccessDeniedException,
   ReservationNotDoneException,
   ReservationNotFoundException,
@@ -124,38 +123,42 @@ export class ReservationResultsService {
   ): Promise<GetReservationResultsResponse> {
     await this.validateAccessAndGetReservation(reservationId, currentUserId);
 
-    const currentUserResult = await this.reservationResultRepository.findOne({
-      where: {
-        reservation: { id: reservationId },
-        user: { id: currentUserId },
-      },
-      relations: { user: true, reservation: true },
-    });
-
-    if (!currentUserResult) {
-      throw new CurrentUserResultNotFoundException();
-    }
-
-    const otherParticipantResults = await this.reservationResultRepository.find(
-      {
+    const [currentUserResult, otherParticipantResults] = await Promise.all([
+      this.reservationResultRepository.findOne({
+        where: {
+          reservation: { id: reservationId },
+          user: { id: currentUserId },
+        },
+        relations: { user: true, reservation: true },
+      }),
+      this.reservationResultRepository.find({
         where: {
           reservation: { id: reservationId },
           user: { id: Not(currentUserId) },
         },
         relations: { user: true, reservation: true },
-      },
-    );
+      }),
+    ]);
 
-    const allResultIds = [
-      currentUserResult.id,
-      ...otherParticipantResults.map((r) => r.id),
-    ];
-    const imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
+    let currentUserResultDto: CreateReservationResultDto | null = null;
+    let imageUrlMap: Map<number, string[]> = new Map();
 
-    const currentUserResultDto = new CreateReservationResultDto(
-      currentUserResult,
-      imageUrlMap.get(currentUserResult.id) || null,
-    );
+    if (currentUserResult) {
+      const allResultIds = [
+        currentUserResult.id,
+        ...otherParticipantResults.map((r) => r.id),
+      ];
+      imageUrlMap = await this.generateImageUrlMapForResults(allResultIds);
+
+      currentUserResultDto = new CreateReservationResultDto(
+        currentUserResult,
+        imageUrlMap.get(currentUserResult.id) || null,
+      );
+    } else {
+      const otherResultIds = otherParticipantResults.map((r) => r.id);
+      imageUrlMap = await this.generateImageUrlMapForResults(otherResultIds);
+    }
+
     const otherParticipantResultDtos = otherParticipantResults.map(
       (result) =>
         new CreateReservationResultDto(
