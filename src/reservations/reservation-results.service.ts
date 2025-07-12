@@ -123,7 +123,6 @@ export class ReservationResultsService {
   ): Promise<GetReservationResultsResponse> {
     await this.validateAccessAndGetReservation(reservationId, currentUserId);
 
-    // 현재 사용자 결과와 다른 참가자 결과를 조회합니다.
     const [currentUserResult, otherParticipantResults] = await Promise.all([
       this.reservationResultRepository.findOne({
         where: {
