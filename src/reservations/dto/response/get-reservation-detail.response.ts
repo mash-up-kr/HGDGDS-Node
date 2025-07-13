@@ -17,10 +17,10 @@ export class HostInfoDto {
 
   @ApiProperty({
     description: '호스트 프로필 이미지 코드',
-    enum: ProfileImageCode, // 👈 enum 타입을 명시
-    example: ProfileImageCode.PURPLE, // 👈 예시도 enum 값으로
+    enum: ProfileImageCode,
+    example: ProfileImageCode.PURPLE,
   })
-  profileImageCode: ProfileImageCode; // 👈 이름과 타입을 변경
+  profileImageCode: ProfileImageCode;
 }
 
 export class CurrentUserInfoDto {
