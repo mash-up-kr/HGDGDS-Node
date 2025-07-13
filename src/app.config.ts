@@ -9,9 +9,7 @@ import { ValidationFailedException } from './common/exception/request-parsing.ex
 import { TimezoneInterceptor } from './common/interceptor/timezone.interceptor';
 
 export function nestConfig(app: INestApplication) {
-  if (process.env.TZ) {
-    process.env.TZ = process.env.TZ || 'Asia/Seoul';
-  }
+  process.env.TZ = 'Asia/Seoul';
 
   const reflector = app.get<Reflector>(Reflector);
   app.useGlobalPipes(
