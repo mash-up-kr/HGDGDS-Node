@@ -481,7 +481,7 @@ export class ReservationsService {
         reservation.id,
         reservation.title,
         reservation.category,
-        reservation.reservationDatetime.toISOString(),
+        reservation.reservationDatetime,
         reservation.description,
         reservation.linkUrl,
         imageUrls,
@@ -489,8 +489,8 @@ export class ReservationsService {
         currentUserInfo,
         participantCount,
         30, // 최대 참가자 수
-        reservation.createdAt.toISOString(),
-        reservation.updatedAt.toISOString(),
+        reservation.createdAt,
+        reservation.updatedAt,
       );
     });
   }
