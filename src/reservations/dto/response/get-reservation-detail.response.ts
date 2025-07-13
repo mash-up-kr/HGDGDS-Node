@@ -77,7 +77,7 @@ export class GetReservationDetailResponse {
     description: '예약 일시',
     example: '2025-08-21T19:00:00+09:00',
   })
-  reservationDatetime: string;
+  reservationDatetime: Date;
 
   @ApiProperty({
     description: '예약 설명',
@@ -128,21 +128,21 @@ export class GetReservationDetailResponse {
 
   @ApiProperty({
     description: '예약 생성 시간',
-    example: '2025-06-13T10:00:00Z',
+    example: '2025-06-13T10:00:00+09:00',
   })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({
     description: '예약 수정 시간',
-    example: '2025-06-13T15:30:00Z',
+    example: '2025-06-13T15:30:00+09:00',
   })
-  updatedAt: string;
+  updatedAt: Date;
 
   constructor(
     reservationId: number,
     title: string,
     category: string,
-    reservationDatetime: string,
+    reservationDatetime: Date,
     description: string | null,
     linkUrl: string | null,
     images: string[],
@@ -150,8 +150,8 @@ export class GetReservationDetailResponse {
     currentUser: CurrentUserInfoDto,
     participantCount: number,
     maxParticipants: number,
-    createdAt: string,
-    updatedAt: string,
+    createdAt: Date,
+    updatedAt: Date,
   ) {
     this.reservationId = reservationId;
     this.title = title;
