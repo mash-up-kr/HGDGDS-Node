@@ -54,7 +54,6 @@ import {
   ReservationNotDoneException,
   ReservationResultAlreadyExistsException,
   ReservationAccessDeniedException,
-  CurrentUserResultNotFoundException,
 } from '@/common/exception/reservation.exception';
 import { ValidationFailedException } from '@/common/exception/request-parsing.exception';
 import { GetReservationMemberResponse } from './dto/response/get-reservation-member.response';
@@ -393,7 +392,6 @@ export class ReservationsController {
   @CommonResponseDecorator(GetReservationResultsResponse)
   @ApiErrorResponse(ReservationAccessDeniedException)
   @ApiErrorResponse(ReservationNotDoneException)
-  @ApiErrorResponse(CurrentUserResultNotFoundException)
   @ApiErrorResponse(ReservationNotFoundException)
   async getReservationResults(
     @Param('reservationId', ParseIntPipe) reservationId: number,

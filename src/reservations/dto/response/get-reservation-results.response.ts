@@ -5,8 +5,9 @@ export class GetReservationResultsResponse {
   @ApiProperty({
     description: 'API를 요청한 현재 사용자의 예약 결과.',
     type: CreateReservationResultDto,
+    nullable: true,
   })
-  currentUser: CreateReservationResultDto;
+  currentUser: CreateReservationResultDto | null;
 
   @ApiProperty({
     description: '예약 결과 목록(자기 자신 제외)',
@@ -15,7 +16,7 @@ export class GetReservationResultsResponse {
   results: CreateReservationResultDto[];
 
   constructor(
-    currentUser: CreateReservationResultDto,
+    currentUser: CreateReservationResultDto | null,
     results: CreateReservationResultDto[],
   ) {
     this.currentUser = currentUser;

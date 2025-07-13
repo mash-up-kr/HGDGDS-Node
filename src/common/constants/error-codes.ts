@@ -109,10 +109,6 @@ export const ERROR_CODES = {
     code: 2019,
     message: '이미 결과가 등록된 예약입니다.',
   },
-  CURRENT_USER_RESULT_NOT_FOUND: {
-    code: 2020,
-    message: '자신의 예약 결과를 먼저 등록해야 합니다.',
-  },
   // Firebase/알림 관련 (3000번대)
   INVALID_FCM_TOKEN: {
     code: 3000,
