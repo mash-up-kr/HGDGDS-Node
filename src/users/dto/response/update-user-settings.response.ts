@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '@/users/entities/user.entity';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 export class UpdateUserSettingsResponseDto {
   @ApiProperty({
@@ -21,10 +22,11 @@ export class UpdateUserSettingsResponseDto {
   nickname: string;
 
   @ApiProperty({
-    description: '프로필 이미지 파일명',
-    example: 'IMG_001',
+    description: '프로필 이미지 코드',
+    enum: ProfileImageCode,
+    example: ProfileImageCode.PURPLE,
   })
-  profileImageName: string;
+  profileImageCode: ProfileImageCode;
 
   @ApiProperty({
     description: '예약 알림 수신 설정',
@@ -48,7 +50,7 @@ export class UpdateUserSettingsResponseDto {
     this.userId = user.id;
     this.deviceId = user.deviceId;
     this.nickname = user.nickname;
-    this.profileImageName = user.profileImageCode;
+    this.profileImageCode = user.profileImageCode;
     this.reservationAlarmSetting = user.reservationAlarmSetting;
     this.kokAlarmSetting = user.kokAlarmSetting;
     this.updatedAt = user.updatedAt;
