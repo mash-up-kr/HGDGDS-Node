@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserReservationStatus } from '@/common/enums/user-reservation-status';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 
 export class HostInfoDto {
   @ApiProperty({
@@ -15,10 +16,11 @@ export class HostInfoDto {
   nickname: string;
 
   @ApiProperty({
-    description: '호스트 프로필 이미지 URL',
-    example: 'https://s3.amazonaws.com/bucket/profile-images/IMG_001.png',
+    description: '호스트 프로필 이미지 코드',
+    enum: ProfileImageCode,
+    example: ProfileImageCode.PURPLE,
   })
-  profileImageName: string;
+  profileImageCode: ProfileImageCode;
 }
 
 export class CurrentUserInfoDto {
