@@ -34,10 +34,7 @@ import {
   CurrentUserInfoDto,
 } from './dto/response/get-reservation-detail.response';
 import { FilesService } from '@/files/files.service';
-import {
-  getProfileImagePath,
-  ProfileImageCode,
-} from '@/common/enums/profile-image-code';
+import { ProfileImageCode } from '@/common/enums/profile-image-code';
 import { User } from '@/users/entities/user.entity';
 import { FirebaseService } from '@/firebase/firebase.service';
 import {
@@ -443,20 +440,7 @@ export class ReservationsService {
         }
       }
 
-      // 6. 호스트 프로필 이미지 URL 생성
-      const hostProfileImagePath = getProfileImagePath(
-        reservation.host.profileImageCode,
-      );
-      let hostProfileImageUrl: string;
-      try {
-        hostProfileImageUrl =
-          await this.filesService.getAccessPresignedUrl(hostProfileImagePath);
-      } catch (error) {
-        console.error('호스트 프로필 이미지 URL 생성 실패:', error);
-        hostProfileImageUrl = hostProfileImagePath;
-      }
-
-      // 7. 응답 데이터 구성
+      // 6. 응답 데이터 구성
       const maxParticipants = 30;
       const isHost = reservation.host.id === currentUserId;
       const canEdit = isHost && reservation.reservationDatetime > new Date();
@@ -466,7 +450,7 @@ export class ReservationsService {
       const hostInfo: HostInfoDto = {
         hostId: reservation.host.id,
         nickname: reservation.host.nickname,
-        profileImageName: hostProfileImageUrl,
+        profileImageCode: reservation.host.profileImageCode,
       };
 
       const currentUserInfo: CurrentUserInfoDto = {
