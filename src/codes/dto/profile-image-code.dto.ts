@@ -3,10 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ProfileImageCodeDto {
   @ApiProperty({
-    description: '코드 이름',
+    description: '프로필 이미지 코드',
     enum: ProfileImageCode,
+    example: ProfileImageCode.PURPLE,
   })
-  profileImageCodeName: ProfileImageCode;
+  profileImageCode: ProfileImageCode;
 
   @ApiProperty({
     description: '프로필 이미지 조회 presigned URL',
@@ -15,7 +16,7 @@ export class ProfileImageCodeDto {
   imageUrl: string;
 
   constructor(code: ProfileImageCode, url: string) {
-    this.profileImageCodeName = code;
+    this.profileImageCode = code;
     this.imageUrl = url;
   }
 }
