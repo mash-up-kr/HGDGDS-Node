@@ -17,6 +17,8 @@ import { ReservationsModule } from './reservations/reservations.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { CodesModule } from './codes/codes.module';
 import { UniversalLinksModule } from './universal-links/universal-links.module';
+import { LoggerModule } from 'nestjs-pino';
+import { Request } from 'express';
 
 @Module({
   imports: [
@@ -26,6 +28,38 @@ import { UniversalLinksModule } from './universal-links/universal-links.module';
     TypeOrmModule.forRoot({
       ...typeormConfig,
       autoLoadEntities: true,
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            singleLine: true,
+          },
+        },
+        customProps: (req: Request) => {
+          return {
+            method: req.method,
+            url: req.originalUrl,
+            params: req.params,
+            query: req.query,
+            body: req.body,
+          };
+        },
+        serializers: {
+          req(req: Request) {
+            return {
+              method: req.method,
+              url: req.url,
+              params: req.params,
+              query: req.query,
+              body: req.body,
+            };
+          },
+        },
+        autoLogging: true,
+      },
     }),
     ScheduleModule.forRoot(),
     UsersModule,
