@@ -39,7 +39,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const body = JSON.stringify(req.body);
     const path = req.path;
 
-    if (getAppMode() == 'prod' && !exceptAlertUrls.includes(path)) {
+    if (
+      getAppMode() === 'prod' &&
+      alertUrlPrefixes.some((prefix) => path.startsWith(prefix))
+    ) {
       let message = 'Unexpected error';
       let stack = '';
       if (exception instanceof Error) {
@@ -68,15 +71,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 }
 
-const exceptAlertUrls: string[] = [
-  '/.git/config',
-  '/.env',
-  '/favicon.ico',
-  '/apple-touch-icon.png',
-  '/invite',
-  '/apple-touch-icon-precomposed.png',
-  '/rootDesc.xml',
-  '/',
-  '/apple-touch-icon-120x120.png',
-  '/apple-touch-icon-120x120-precomposed.png',
+// TODO: 우아한 방법으로 바꾸기..
+const alertUrlPrefixes: string[] = [
+  '/users/',
+  '/files/',
+  '/auth/',
+  '/reservations/',
+  '/firebase/',
+  '/codes/',
+  '/invite/',
 ];
