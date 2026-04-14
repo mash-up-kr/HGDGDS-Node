@@ -59,13 +59,13 @@ APP_MODE=dev yarn start:dev
 
 | 변수명 | 설명 |
 | --- | --- |
-| `APP_MODE` | 실행 모드. `dev` 또는 `prod` |
+| `APP_MODE` | 실행 모드. `dev` 또는 `prod` (미설정 시 기본값 `dev`) |
 | `PORT` | 서버 포트. 기본값 `3000` |
-| `DB_HOST` | PostgreSQL 호스트 |
-| `DB_PORT` | PostgreSQL 포트 |
-| `DB_USER` | PostgreSQL 사용자 |
-| `DB_PASSWORD` | PostgreSQL 비밀번호 |
-| `DB_NAME` | PostgreSQL 데이터베이스 이름 |
+| `DB_HOST` | PostgreSQL 호스트 (`APP_MODE=prod`에서 필수, `dev`에서는 `dev.env`로 로드 가능) |
+| `DB_PORT` | PostgreSQL 포트 (`APP_MODE=prod`에서 필수, `dev`에서는 `dev.env`로 로드 가능) |
+| `DB_USER` | PostgreSQL 사용자 (`APP_MODE=prod`에서 필수, `dev`에서는 `dev.env`로 로드 가능) |
+| `DB_PASSWORD` | PostgreSQL 비밀번호 (`APP_MODE=prod`에서 필수, `dev`에서는 `dev.env`로 로드 가능) |
+| `DB_NAME` | PostgreSQL 데이터베이스 이름 (`APP_MODE=prod`에서 필수, `dev`에서는 `dev.env`로 로드 가능) |
 | `JWT_SECRET` | JWT 서명 시크릿 |
 | `JWT_EXPIRE` | JWT 만료 기간. 미설정 시 `2y` |
 | `AWS_S3_BUCKET` | S3 버킷 이름 |
@@ -73,6 +73,8 @@ APP_MODE=dev yarn start:dev
 | `AWS_S3_ACCESS_KEY` | S3 접근 키 |
 | `AWS_S3_SECRET_KEY` | S3 비밀 키 |
 | `FIREBASE_CONFIG` | Firebase 서비스 계정 JSON 문자열 |
+
+DB 관련 환경변수(`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)는 `APP_MODE=prod`일 때만 시작 시 필수 검증됩니다. `dev` 모드에서는 `dev.env` 파일이 자동으로 로드됩니다.
 
 ### 선택
 
@@ -190,7 +192,7 @@ yarn test:e2e
 - 업로드 URL 발급: `POST /files/presigned-url/upload`
 - 조회 URL 발급: `POST /files/presigned-url/access`
 
-세부 플로우는 [docs/files.md](/Users/a2485/PJ/mashup/HGDGDS-Node/docs/files.md)에서 확인할 수 있습니다.
+세부 플로우는 [docs/files.md](./docs/files.md)에서 확인할 수 있습니다.
 
 ## 테스트
 
